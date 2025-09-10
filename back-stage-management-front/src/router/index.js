@@ -1,17 +1,26 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Login  from '@/views/Login/Login'
+import Login from '@/views/Login/MyLogin'
 import Layout from '@/views/Layout/Layout'
 import Home from '@/views/Home/Home'
+import { checkAuthStatus } from '@/api';
+import store from '@/store'
 
 //异步
-const Goods=()=>import('@/views/Goods/Goods')
-const Advert=()=>import('@/views/Advert/Advert')
-const Order=()=>import('@/views/Order/Order')
-const Params=()=>import('@/views/Params/Params')
-const User=()=>import('@/views/User/User')
-
-
+// 登录页面
+const LoginForm = () => import('@/views/Login/LoginForm')
+const ForgetPassword = () => import('@/views/Login/ForgetPassword')
+const MobileLogin = () => import('@/views/Login/MobileLogin')
+const QrCodeLogin = () => import('@/views/Login/QrCodeLogin')
+const CreateAccount = () => import('@/views/Login/CreateAccount')
+// 内容页面
+const Goods = () => import('@/views/Goods/Goods')
+const AddGoods = () => import('@/views/Goods/AddGoods')
+const Advert = () => import('@/views/Advert/Advert')
+const Order = () => import('@/views/Order/Order')
+const Params = () => import('@/views/Params/Params')
+const Category = () => import('@/views/Params/Category')
+const User = () => import('@/views/User/User')
 
 
 Vue.use(VueRouter)
@@ -20,58 +29,115 @@ const routes = [
   {
     path: '/',
     component: Layout,
-    children:[
+    //路由元信息,配置给父组件，就会拦截下面的所有组件
+    meta: {
+      requiresAuth: true
+    },
+    children: [
       {
-        path:'/',
-        name:"Home",
+        path: '/',
+        name: "Home",
         component: Home
       },
       {
-        path:'/goods',
-        name:"Goods",
+        path: '/goods',
+        name: "Goods",
         component: Goods
+      }, {
+        path: '/add-goods',
+        name: 'AddGoods',
+        component: AddGoods
       },
       {
-        path:'/advert',
-        name:"Advert",
+        path: '/advert',
+        name: "Advert",
         component: Advert
       },
       {
-        path:'/order',
-        name:"Order",
+        path: '/order',
+        name: "Order",
         component: Order
       },
       {
-        path:'/params',
-        name:"Params",
+        path: '/params',
+        name: "Params",
         component: Params
       },
       {
-        path:'/user',
-        name:"User",
+        path: '/category',
+        name: "Category",
+        component: Category
+      },
+      {
+        path: '/user',
+        name: "User",
         component: User
       },
     ]
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: Login
+    path: '/auth/login',
+    name: 'Auth',
+    component: Login,
+    meta: { guestOnly: true },
+    children: [
+      {
+        path: '/auth/login',
+        name: "Login",
+        component: LoginForm
+      },
+      {
+        path: '/auth/create',
+        name: "CreateAccount",
+        component: CreateAccount
+      },
+      {
+        path: '/auth/forget',
+        name: "ForgetPassword",
+        component: ForgetPassword
+      },
+      {
+        path: '/auth/mobile_login',
+        name: "MobileLogin",
+        component: MobileLogin
+      },
+      {
+        path: '/auth/qr_code',
+        name: "QrCode",
+        component: QrCodeLogin
+      }
+    ]
   },
-  // {
-  //   path: '/about',
-  //   name: 'about',
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  // }
+  {
+    path: '/about',
+    name: 'about',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/Test.vue')
+  },
+  {
+  path: '/:pathMatch(.*)*',
+  name: 'NotFound',
+  component: () => import('@/views/ErrorPages/NotFound.vue')
+  },
+
+  
 ]
+
+
+// const originalPush = VueRouter.prototype.push
+// VueRouter.prototype.push = function push(location, onResolve, onReject){
+//   if (onResolve || onReject) return originalPush.call(this,location,onResolve,onReject)
+//     return originalPush.call(this,location).catch(err => err)
+// }
+
 
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
 })
+
 
 export default router

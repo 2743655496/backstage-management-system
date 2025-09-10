@@ -1,5 +1,5 @@
 <template>
-  <div>登录</div>
+  <div>规格类目</div>
 </template>
 
 <script>

@@ -1,0 +1,107 @@
+{
+  "id": "4990114",
+  "name": "no name",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1347470",
+      "name": "chrome",
+      "font_class": "chrome",
+      "unicode": "e647",
+      "unicode_decimal": 58951
+    },
+    {
+      "icon_id": "4936984",
+      "name": "QQ",
+      "font_class": "QQ",
+      "unicode": "e882",
+      "unicode_decimal": 59522
+    },
+    {
+      "icon_id": "4937000",
+      "name": "github-fill",
+      "font_class": "github-fill",
+      "unicode": "e885",
+      "unicode_decimal": 59525
+    },
+    {
+      "icon_id": "6556787",
+      "name": "微信",
+      "font_class": "weixin",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "6556877",
+      "name": "微博",
+      "font_class": "weibo",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "4570298",
+      "name": "英文",
+      "font_class": "yingwen",
+      "unicode": "ebe0",
+      "unicode_decimal": 60384
+    },
+    {
+      "icon_id": "4573742",
+      "name": "中文",
+      "font_class": "zhongwen",
+      "unicode": "ebe2",
+      "unicode_decimal": 60386
+    },
+    {
+      "icon_id": "40162295",
+      "name": "布局_居左",
+      "font_class": "buju_juzuo",
+      "unicode": "e66d",
+      "unicode_decimal": 58989
+    },
+    {
+      "icon_id": "40162299",
+      "name": "布局_居右",
+      "font_class": "buju_juyou",
+      "unicode": "e66e",
+      "unicode_decimal": 58990
+    },
+    {
+      "icon_id": "11972855",
+      "name": "调色板",
+      "font_class": "diaoseban",
+      "unicode": "e696",
+      "unicode_decimal": 59030
+    },
+    {
+      "icon_id": "43971150",
+      "name": "Edit_垂直居中_margin_linear",
+      "font_class": "Edit_chuizhijuzhong_margin_linear",
+      "unicode": "e704",
+      "unicode_decimal": 59140
+    },
+    {
+      "icon_id": "1975869",
+      "name": "全屏",
+      "font_class": "fangda",
+      "unicode": "e66a",
+      "unicode_decimal": 58986
+    },
+    {
+      "icon_id": "14166830",
+      "name": "缩小",
+      "font_class": "suoxiao",
+      "unicode": "e639",
+      "unicode_decimal": 58937
+    },
+    {
+      "icon_id": "29808351",
+      "name": "语言",
+      "font_class": "yuyan",
+      "unicode": "e8c7",
+      "unicode_decimal": 59591
+    }
+  ]
+}

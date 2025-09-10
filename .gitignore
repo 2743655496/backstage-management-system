@@ -1,0 +1,36 @@
+# 🌐 Vue2 前端项目忽略项
+back-stage-management-front/node_modules/
+back-stage-management-front/dist/
+back-stage-management-front/.env
+back-stage-management-front/.DS_Store
+back-stage-management-front/npm-debug.log*
+back-stage-management-front/yarn-error.log
+back-stage-management-front/.vscode/
+back-stage-management-front/.idea/
+
+# 🐍 Django 后端项目忽略项
+back_stage_management_django/.idea/
+back_stage_management_django/.venv/
+back_stage_management_django/**/*.pyc
+back_stage_management_django/**/__pycache__/
+back_stage_management_django/**/migrations/
+back_stage_management_django/*.sqlite3
+back_stage_management_django/db.sqlite3
+back_stage_management_django/.env
+back_stage_management_django/.DS_Store
+back_stage_management_django/logs/
+back_stage_management_django/*.log
+
+# 📦 通用 IDE 和系统文件
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+Thumbs.db
+.DS_Store
+
+# ✅ 可选：忽略证书目录（如包含敏感信息）
+back_stage_management_django/certificate/
+back-stage-management-front/certificate/
+
