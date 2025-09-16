@@ -1,80 +1,17 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { componentMap } from './componentMap'
 import Login from '@/views/Login/MyLogin'
-import Layout from '@/views/Layout/Layout'
-import Home from '@/views/Home/Home'
-import { checkAuthStatus } from '@/api';
-import store from '@/store'
-
-//异步
-// 登录页面
-const LoginForm = () => import('@/views/Login/LoginForm')
-const ForgetPassword = () => import('@/views/Login/ForgetPassword')
-const MobileLogin = () => import('@/views/Login/MobileLogin')
-const QrCodeLogin = () => import('@/views/Login/QrCodeLogin')
-const CreateAccount = () => import('@/views/Login/CreateAccount')
-// 内容页面
-const Goods = () => import('@/views/Goods/Goods')
-const AddGoods = () => import('@/views/Goods/AddGoods')
-const Advert = () => import('@/views/Advert/Advert')
-const Order = () => import('@/views/Order/Order')
-const Params = () => import('@/views/Params/Params')
-const Category = () => import('@/views/Params/Category')
-const User = () => import('@/views/User/User')
-
 
 Vue.use(VueRouter)
 
-const routes = [
+// 基础路由（不需要权限）
+const baseRoutes = [
   {
     path: '/',
-    component: Layout,
-    //路由元信息,配置给父组件，就会拦截下面的所有组件
-    meta: {
-      requiresAuth: true
-    },
-    children: [
-      {
-        path: '/',
-        name: "Home",
-        component: Home
-      },
-      {
-        path: '/goods',
-        name: "Goods",
-        component: Goods
-      }, {
-        path: '/add-goods',
-        name: 'AddGoods',
-        component: AddGoods
-      },
-      {
-        path: '/advert',
-        name: "Advert",
-        component: Advert
-      },
-      {
-        path: '/order',
-        name: "Order",
-        component: Order
-      },
-      {
-        path: '/params',
-        name: "Params",
-        component: Params
-      },
-      {
-        path: '/category',
-        name: "Category",
-        component: Category
-      },
-      {
-        path: '/user',
-        name: "User",
-        component: User
-      },
-    ]
+    redirect: '/dashboard/analysis'
   },
+
   {
     path: '/auth/login',
     name: 'Auth',
@@ -84,60 +21,47 @@ const routes = [
       {
         path: '/auth/login',
         name: "Login",
-        component: LoginForm
+        component: () => import('@/views/Login/LoginForm.vue')
       },
       {
         path: '/auth/create',
         name: "CreateAccount",
-        component: CreateAccount
+        component: () => import('@/views/Login/CreateAccount.vue')
       },
       {
         path: '/auth/forget',
         name: "ForgetPassword",
-        component: ForgetPassword
+        component: () => import('@/views/Login/ForgetPassword.vue')
       },
       {
         path: '/auth/mobile_login',
         name: "MobileLogin",
-        component: MobileLogin
+        component: () => import('@/views/Login/MobileLogin.vue')
       },
       {
         path: '/auth/qr_code',
         name: "QrCode",
-        component: QrCodeLogin
-      }
+        component: () => import('@/views/Login/QrCodeLogin.vue')
+      },
+
     ]
+  },
+  {
+    path: '/404',
+    name: 'NotFound',
+    component: () => import('@/views/ErrorPages/NotFound.vue')
   },
   {
     path: '/about',
     name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/Test.vue')
-  },
-  {
-  path: '/:pathMatch(.*)*',
-  name: 'NotFound',
-  component: () => import('@/views/ErrorPages/NotFound.vue')
-  },
-
-  
+    component: () => import('@/views/Test.vue')
+  }
 ]
-
-
-// const originalPush = VueRouter.prototype.push
-// VueRouter.prototype.push = function push(location, onResolve, onReject){
-//   if (onResolve || onReject) return originalPush.call(this,location,onResolve,onReject)
-//     return originalPush.call(this,location).catch(err => err)
-// }
-
 
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes
+  routes: baseRoutes
 })
-
 
 export default router

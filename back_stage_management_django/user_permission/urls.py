@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import DepartmentViewSet, RoleViewSet, UserViewSet, PermissionViewSet
-from .views import LoginView, TokenRefreshView, UserProfileView,LogoutView,SliderVerifyView,AuthStatusView
+from .views import LoginView, TokenRefreshView, UserProfileView,LogoutView,SliderVerifyView,AuthStatusView,UserPermissionView
 
 router = DefaultRouter()
 router.register(r'departments', DepartmentViewSet)
@@ -17,5 +17,6 @@ urlpatterns = [
     path('refresh/', TokenRefreshView.as_view(), name='refresh-token'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('userinfo/', UserProfileView.as_view(), name='user-profile'),
+    path('permission/', UserPermissionView.as_view(), name='user-permission'),
 ]
 

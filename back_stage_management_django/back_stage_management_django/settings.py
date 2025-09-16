@@ -25,9 +25,9 @@ SECRET_KEY = 'django-insecure-8pf_9*jnm8@)6(#bn=4ojbot+pcc^cszvpk&@)b)uux*sj=bq6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.18.67', 'localhost']
+ALLOWED_HOSTS = ['192.168.18.67', 'localhost','127.0.0.1']
 
 # Application definition
 
@@ -177,84 +177,94 @@ LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,  # 不屏蔽已有的 logger
-    'formatters': {
-        'verbose': {  # 详细格式
-            'format': '[{asctime}] [{levelname}] [{name}] '
-                      '[PID:{process}] [TID:{thread}] '
-                      '{message}',
-            'style': '{',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
+if not DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,  # 不屏蔽已有的 logger
+        'formatters': {
+            'verbose': {  # 详细格式
+                'format': '[{asctime}] [{levelname}] [{name}] '
+                          '[PID:{process}] [TID:{thread}] '
+                          '{message}',
+                'style': '{',
+                'datefmt': '%Y-%m-%d %H:%M:%S'
+            },
+            'simple': {  # 简单格式
+                'format': '[{levelname}] {message}',
+                'style': '{'
+            },
+            'json': {  # JSON 格式（方便 ELK/Splunk）
+                'format': '{{"time": "{asctime}", "level": "{levelname}", '
+                          '"logger": "{name}", "message": "{message}"}}',
+                'style': '{',
+                'datefmt': '%Y-%m-%dT%H:%M:%S'
+            }
         },
-        'simple': {  # 简单格式
-            'format': '[{levelname}] {message}',
-            'style': '{'
-        },
-        'json': {  # JSON 格式（方便 ELK/Splunk）
-            'format': '{{"time": "{asctime}", "level": "{levelname}", '
-                      '"logger": "{name}", "message": "{message}"}}',
-            'style': '{',
-            'datefmt': '%Y-%m-%dT%H:%M:%S'
-        }
-    },
-    'handlers': {
-        'console': {  # 控制台输出
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'info_file': {  # 普通业务日志
-            'level': 'INFO',
-            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'app_info.log'),
-            'maxBytes': 10 * 1024 * 1024,
-            'backupCount': 30,  # 保留 30 天
-            'encoding': 'utf-8',
-            'formatter': 'verbose',
-            'delay': True  # ✅ 加上这个
-        },
-        'error_file': {  # 错误日志
-            'level': 'ERROR',
-            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'app_error.log'),
-            'maxBytes': 10 * 1024 * 1024,
-            'backupCount': 60,
-            'encoding': 'utf-8',
-            'formatter': 'verbose',
-            'delay': True
-        },
-        'audit_file': {
-            'level': 'INFO',
-            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'audit.log'),
-            'maxBytes': 10 * 1024 * 1024,
-            'backupCount': 180,
-            'encoding': 'utf-8',
-            'formatter': 'json',
-            'delay': True
-        }
+        'handlers': {
+            'console': {  # 控制台输出
+                'level': LOG_LEVEL,
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple'
+            },
+            'info_file': {  # 普通业务日志
+                'level': 'INFO',
+                'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+                'filename': os.path.join(LOG_DIR, 'app_info.log'),
+                'maxBytes': 10 * 1024 * 1024,
+                'backupCount': 30,  # 保留 30 天
+                'encoding': 'utf-8',
+                'formatter': 'verbose',
+                'delay': True  # ✅ 加上这个
+            },
+            'error_file': {  # 错误日志
+                'level': 'ERROR',
+                'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+                'filename': os.path.join(LOG_DIR, 'app_error.log'),
+                'maxBytes': 10 * 1024 * 1024,
+                'backupCount': 60,
+                'encoding': 'utf-8',
+                'formatter': 'verbose',
+                'delay': True
+            },
+            'audit_file': {
+                'level': 'INFO',
+                'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+                'filename': os.path.join(LOG_DIR, 'audit.log'),
+                'maxBytes': 10 * 1024 * 1024,
+                'backupCount': 180,
+                'encoding': 'utf-8',
+                'formatter': 'json',
+                'delay': True
+            }
 
-    },
-    'loggers': {
-        'django': {  # Django 自带日志
+        },
+        'loggers': {
+            'concurrent_log_handler': {
+                    'handlers': ['console'],
+                    'level': 'WARNING',
+                    'propagate': False
+                },
+            'django': {  # Django 自带日志
+                'handlers': ['console', 'info_file', 'error_file'],
+                'level': LOG_LEVEL,
+                'propagate': True
+            },
+            'audit': {  # 审计日志专用 logger
+                'handlers': ['audit_file'],
+                'level': 'INFO',
+                'propagate': False
+            },
+            'myapp': {  # 业务日志
+                'handlers': ['console', 'info_file', 'error_file'],
+                'level': LOG_LEVEL,
+                'propagate': False
+            }
+        },
+    'root': {
             'handlers': ['console', 'info_file', 'error_file'],
             'level': LOG_LEVEL,
-            'propagate': True
-        },
-        'audit': {  # 审计日志专用 logger
-            'handlers': ['audit_file'],
-            'level': 'INFO',
-            'propagate': False
-        },
-        'myapp': {  # 业务日志
-            'handlers': ['console', 'info_file', 'error_file'],
-            'level': LOG_LEVEL,
-            'propagate': False
         }
     }
-}
 
 # 跨域配置
 CORS_ALLOWED_ORIGINS = ["http://localhost:8080", "http://192.168.18.67:8080", "https://192.168.18.67:8080"]

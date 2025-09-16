@@ -119,7 +119,7 @@ export default {
   list-style: none;
   padding: 6px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 100;
+  z-index: 4;
 }
 .dropdown-menu li {
   display: flex;

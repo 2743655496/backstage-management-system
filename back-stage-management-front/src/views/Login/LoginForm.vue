@@ -185,8 +185,16 @@ export default {
                 // 可选：保存用户信息到状态管理或 localStorage
                 const user = res.data.user;
                 this.$store.commit("LoginModule/setUserInfo", user); // 如果你使用 Vuex
-                // 跳转到首页或用户中心
-                this.$router.push("/");
+                // ✅ 加载权限并注册动态路由
+                // 加载权限并注册动态路由
+                this.$store
+                  .dispatch("PermissionModule/fetchPermissions")
+                  .then(() => {
+                    // ✅ 等待权限加载完成后再跳转
+                    setTimeout(() => {
+                      this.$router.push("/");
+                    }, 100); // 延迟 100ms，可根据实际情况调整
+                  });
               })
               .catch((err) => {
                 const errorMsg =

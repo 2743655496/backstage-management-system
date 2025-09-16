@@ -1,8 +1,9 @@
 import logging
 import uuid
 import jwt
+import json
 from rest_framework import viewsets
-from .models import Department, Role, User, Permission
+from .models import Department, Role, User,UserRole, RolePermission, Permission, Menu
 from .serializers import DepartmentSerializer, RoleSerializer, UserSerializer, PermissionSerializer, UserLoginSerializer
 from .utils.jwt_utils import JWTUtils
 from django.utils import timezone
@@ -224,3 +225,93 @@ class LogoutView(APIView):
         response.delete_cookie('refresh_token')
 
         return response
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import UserRole, RolePermission, Permission, Menu
+from utils.redis_client import RedisClient
+import json
+
+class UserPermissionView(APIView):
+
+    def get(self, request):
+        user_id = request.my_user.id
+        cache_key = f"user:permissions:tree:{user_id}"
+
+        # 尝试从 Redis 获取缓存
+        cached = RedisClient.get(cache_key)
+        if cached:
+            return Response(json.loads(cached))
+
+        # 获取用户角色
+        role_ids = UserRole.objects.filter(user_id=user_id).values_list('role_id', flat=True)
+
+        # 获取角色权限
+        permission_ids = RolePermission.objects.filter(role_id__in=role_ids).values_list('permission_id', flat=True)
+
+        # 获取所有权限
+        permissions = Permission.objects.filter(
+            id__in=permission_ids,
+            status=1,
+            is_deleted=0
+        )
+
+        # 菜单权限（type=1）
+        menu_ids = permissions.filter(type=1).values_list('menu_id', flat=True)
+        menus = Menu.objects.filter(id__in=menu_ids, status=1, is_deleted=0).order_by('sort')
+        menus_list = []
+        # 构建菜单树
+        def build_tree(menu_list, parent_id=0):
+            tree = []
+            for menu in menu_list:
+                if menu.parent_id == parent_id:
+                    item = {
+                        'id': menu.id,
+                        'name': menu.name,
+                        'path': menu.path,
+                        'component': menu.component,
+                        'icon': menu.icon,
+                        'children': build_tree(menu_list, menu.id)
+                    }
+                    tree.append(item)
+                    if parent_id != 0:
+                        menus_list.append({
+                        'id': menu.id,
+                        'name': menu.name,
+                        'path': menu.path,
+                        'component': menu.component,
+                    })
+            return tree
+
+        menu_permissions = build_tree(list(menus))
+
+        # 接口权限（type=2），按菜单 path 分组
+        permission_map = {}
+        for perm in permissions.filter(type=2):
+            menu = Menu.objects.filter(id=perm.menu_id, is_deleted=0).first()
+            if not menu or not menu.path:
+                continue
+            path = menu.path
+            if path not in permission_map:
+                permission_map[path] = []
+            permission_map[path].append({
+                'id': perm.id,
+                'name': perm.name,
+                'code': perm.code,
+                'method': perm.api_method,
+                'path': perm.api_path
+            })
+
+        result = {
+            "menus_list":menus_list,
+            'menu_permissions': menu_permissions,
+            'permission_map': permission_map
+        }
+
+        # 缓存结果（5分钟）
+        RedisClient.set(cache_key, json.dumps(result), ex=300)
+
+        return Response(result)
+

@@ -15,12 +15,15 @@
       <el-tag
         v-for="tag in TabMenu"
         :key="tag.name"
-        :closable="isActiveTag(tag)"
+        :closable="!tag.fixed"
         :type="tag.type"
         :class="['el-tag-my', { active: isActiveTag(tag) }]"
         @click="selectTag(tag)"
         @close="handleCloseTag(tag, $event)"
       >
+        <template v-if="tag.fixed">
+          <i class="el-icon-lock" style="margin-right: 4px"></i>
+        </template>
         {{ tag.name }}
       </el-tag>
     </div>
@@ -46,7 +49,12 @@
           <el-dropdown-item icon="el-icon-refresh-right"
             >重新加载</el-dropdown-item
           >
-          <el-dropdown-item icon="iconfont icon-yuyan">固定</el-dropdown-item>
+          <el-dropdown-item
+            @click.native="toggleFixed(selectedTag)"
+            :icon="selectedFixed ? 'el-icon-unlock' : 'el-icon-lock'"
+          >
+            {{ selectedFixed ? "取消固定" : "固定标签" }}
+          </el-dropdown-item>
           <el-dropdown-item icon="iconfont icon-yuyan"
             >在新窗口打开</el-dropdown-item
           >
@@ -66,7 +74,7 @@
           >
         </el-dropdown-menu>
       </el-dropdown>
-      <button class="btn-tab" @click="test">
+      <button class="btn-tab">
         <i class="iconfont icon-fangda"></i>
         <!-- <i class="iconfont icon-suoxiao"></i> -->
       </button>
@@ -75,19 +83,17 @@
 </template>
 
 <script>
-import { v4 as uuidv4 } from "uuid";
+import navigation from "@/utils/navigation";
 import { mapState, mapActions } from "vuex";
 export default {
   computed: {
     ...mapState("MenuStateModule", ["TabMenu"]),
+    selectedFixed() {
+      return this.selectedTag?.fixed || false;
+    },
   },
   data() {
     return {
-      // tags: [
-      //   { name: "标签一", type: "", path: "/home" },
-      //   { name: "标签二标签二", type: "success", path: "/home2" },
-      //   // ...其他标签
-      // ],
       scrollLeftDisabled: true,
       scrollRightDisabled: false,
       canScrollLeft: false,
@@ -96,14 +102,11 @@ export default {
     };
   },
   methods: {
-    ...mapActions("MenuStateModule", ["clearTabMenu"]),
-    test() {
-      const uuid = uuidv4();
-      this.tags.push({ name: uuid, type: "success", path: uuid });
-      this.selectTag({ name: uuid, type: "success", path: uuid });
-      this.updateScrollButtons();
-      this.scrollToEnd();
-    },
+    ...mapActions("MenuStateModule", [
+      "clearTabMenu",
+      "toggleFixedTabMenu",
+      "setCurrentMenuaddTabMenu",
+    ]),
     // 滚动到标签容器末尾
     scrollToEnd() {
       this.$nextTick(() => {
@@ -113,10 +116,9 @@ export default {
     },
     // 检查是否为激活标签
     isActiveTag(tag) {
-      return (
-        this.selectedTag && this.selectedTag.router_path === tag.router_path
-      );
+      return this.$route.path === tag.path;
     },
+
     // 滚动标签容器
     scrollTags(direction) {
       const container = this.$refs.tagsContainer;
@@ -144,8 +146,9 @@ export default {
     // 选择标签
     selectTag(tag) {
       this.selectedTag = tag;
+      this.setCurrentMenuaddTabMenu(tag.path);
       // 这里可以添加路由跳转逻辑
-      // this.$router.push(tag.path)
+      navigation.safePush(this, tag.path);
       this.$nextTick(() => {
         this.scrollTagIntoView(tag);
       });
@@ -200,23 +203,29 @@ export default {
     // 关闭标签
     handleCloseTag(tag, event) {
       event.stopPropagation(); // 阻止事件冒泡
-
       // // 如果是当前激活的标签，需要特殊处理
-      // if (this.isActiveTag(tag)) {
-      //   this.closeActiveTag(tag);
-      // } else {
-      //   this.closeInactiveTag(tag);
-      // }
+      if (this.isActiveTag(tag)) {
+        // this.closeActiveTag(tag);
+        console.log(123);
+        // this.$store.dispatch("MenuStateModule/removeTabMenu", tag.path)
+      } else {
+        // this.closeInactiveTag(tag);
+        console.log(456);
+        // this.$store.dispatch("MenuStateModule/removeTabMenu", tag.path)
+      }
     },
     //刷新初始激活
     initActive() {
       const matchedRoute = this.$route.path;
       for (let i = 0; i < this.TabMenu.length; i++) {
         const item = this.TabMenu[i];
-        if (item.router_path === matchedRoute) {
+        if (item.path === matchedRoute) {
           this.selectTag(item);
         }
       }
+    },
+    toggleFixed(tag) {
+      this.toggleFixedTabMenu(tag.path);
     },
   },
   mounted() {
@@ -239,6 +248,12 @@ export default {
         this.checkScrollButtons();
       });
     },
+    "$route.path"(newPath) {
+      const matched = this.TabMenu.find((tag) => tag.path === newPath);
+      if (matched) {
+        this.selectedTag = matched;
+      }
+    },
   },
 };
 </script>
@@ -247,7 +262,7 @@ export default {
 .rowtwo {
   display: flex;
   align-items: center;
-  height: 34px;
+  height: 32.5px;
   background: #f5f7fa;
   overflow: hidden; // 隐藏溢出的内容
 

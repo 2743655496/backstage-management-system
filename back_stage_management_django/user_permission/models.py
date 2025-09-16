@@ -8,11 +8,11 @@ class Department(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name='部门描述')
     manager_id = models.BigIntegerField(blank=True, null=True, verbose_name='部门负责人ID')
     sort = models.IntegerField(default=0, verbose_name='排序')
-    status = models.SmallIntegerField(default=1, verbose_name='状态')
+    status = models.SmallIntegerField(default=1, verbose_name='状态(1启用，2禁用)')
     creator_id = models.BigIntegerField(blank=True, null=True, verbose_name='创建人ID')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志')
+    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志(0未删除,1删除)')
 
     class Meta:
         db_table = 'departments'
@@ -29,11 +29,11 @@ class Role(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name='角色名称')
     code = models.CharField(max_length=50, unique=True, verbose_name='角色编码')
     description = models.TextField(blank=True, null=True, verbose_name='角色描述')
-    status = models.SmallIntegerField(default=1, verbose_name='状态')
+    status = models.SmallIntegerField(default=1, verbose_name='状态(0禁用,1启用)')
     creator_id = models.BigIntegerField(blank=True, null=True, verbose_name='创建人ID')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志')
+    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志状态(0未删除,1删除)')
 
     class Meta:
         db_table = 'roles'
@@ -59,7 +59,7 @@ class User(models.Model):
     creator_id = models.BigIntegerField(blank=True, null=True, verbose_name='创建人ID')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志')
+    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志(0未删除,1删除)')
 
     class Meta:
         db_table = 'users'
@@ -99,7 +99,7 @@ class Menu(models.Model):
     creator_id = models.BigIntegerField(blank=True, null=True, verbose_name='创建人ID')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志')
+    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志(0未删除,1删除)')
 
     class Meta:
         db_table = 'menus'
@@ -115,16 +115,16 @@ class Permission(models.Model):
     name = models.CharField(max_length=50, verbose_name='权限名称')
     code = models.CharField(max_length=100, unique=True, verbose_name='权限标识')
     description = models.TextField(blank=True, null=True, verbose_name='权限描述')
-    type = models.SmallIntegerField(verbose_name='权限类型')
+    type = models.SmallIntegerField(verbose_name='权限类型(1 表示菜单权限,2 接口权限)')
     menu_id = models.BigIntegerField(blank=True, null=True, verbose_name='关联菜单ID(仅页面权限需要)')
     parent_id = models.BigIntegerField(default=0, verbose_name='父权限ID')
     api_method = models.CharField(max_length=10, blank=True, null=True, verbose_name='接口方法')
     api_path = models.CharField(max_length=255, blank=True, null=True, verbose_name='接口路径')
-    status = models.SmallIntegerField(default=1, verbose_name='状态')
+    status = models.SmallIntegerField(default=1, verbose_name='状态(1启用，2禁用)')
     creator_id = models.BigIntegerField(blank=True, null=True, verbose_name='创建人ID')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志')
+    is_deleted = models.SmallIntegerField(default=0, verbose_name='删除标志(0未删除,1删除)')
 
     class Meta:
         db_table = 'permissions'

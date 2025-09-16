@@ -2,7 +2,7 @@
   <el-container class="my-el-container">
     <el-header style="font-size: 12px" class="my-el-header">
       <el-row class="rowone">
-        <button @click="changeMenu" class="btn">
+        <button @click="changeMenu" class="btn" v-if="!shouldHideMenuButton">
           <i v-if="!isCollapse" class="el-icon-s-fold"></i>
           <i v-else class="el-icon-s-unfold"></i>
         </button>
@@ -19,7 +19,6 @@
               v-if="index < CurrentMenu.length - 1"
               :key="index"
               @click.native="navigateTo(item)"
-              :to="item.router_path"
             >
               {{ item.name }}
             </el-breadcrumb-item>
@@ -54,13 +53,12 @@
         <!-- <button class="circle-btn">
           <img src="@/assets/horse.png" alt="用户头像" />
         </button> -->
-        <ButtonImageDropdown
-        />
+        <ButtonImageDropdown />
       </el-row>
       <Tabs />
     </el-header>
 
-    <el-main class="my-el-main">
+    <el-main>
       <router-view></router-view>
     </el-main>
   </el-container>
@@ -70,7 +68,8 @@
 import Tabs from "@/components/Layout/MyTabs.vue";
 import ButtonIconDropdown from "@/components/ButtonIconDropdown.vue";
 import ButtonImageDropdown from "@/components/Layout/ButtonImageDropdown.vue";
-import { mapState, mapGetters } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
+import navigation from "@/utils/navigation";
 
 export default {
   computed: {
@@ -80,29 +79,43 @@ export default {
   components: {
     Tabs,
     ButtonIconDropdown,
-    ButtonImageDropdown
+    ButtonImageDropdown,
   },
   props: ["isCollapse"],
   data() {
-    return {};
+    return {
+      shouldHideMenuButton: false,
+    };
+  },
+  watch: {
+    shouldHideMenuButton(val) {
+      if (val && !this.isCollapse) {
+        this.$emit("changeMenu"); // 触发父组件折叠逻辑
+      }
+    },
   },
   mounted() {
+    this.checkScreenWidth();
+    window.addEventListener("resize", this.checkScreenWidth);
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.checkScreenWidth);
   },
   methods: {
+    ...mapActions("MenuStateModule", ["setCurrentMenuaddTabMenu"]),
+    checkScreenWidth() {
+      this.shouldHideMenuButton = window.innerWidth <= 776;
+    },
     /**
      * 自定义事件，触发父组件里的事件
      */
-    shouldNavigate(path) {
-      return path && this.$route.path !== path;
-    },
     changeMenu() {
       this.$emit("changeMenu");
     },
     navigateTo(item) {
-      if (item.children.length !== 0) {
-        //触发action
-        this.$store.dispatch("MenuStateModule/setCurrentMenu", [item, 0]);
-      }
+      const targetPath = item.children?.[0]?.path || item.path;
+      this.setCurrentMenuaddTabMenu(targetPath);
+      navigation.safePush(this, targetPath);
     },
     /**
      * 切换语言
@@ -115,11 +128,9 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import "@/assets/iconfig/font_4990114_9ul1zoop53i/iconfont.css";
 .my-el-container {
   height: 100%;
   width: 100%;
-  min-width: 524px; /* 设置页面最小宽度 */
   overflow-x: auto; /* 超出时显示横向滚动条 */
   .btn {
     margin-left: 4px;
@@ -147,7 +158,7 @@ export default {
   .btn-radius:hover {
     background-color: #f5f5f5;
   }
-  
+
   ::v-deep(.el-header) {
     padding: 0 0px;
   }
@@ -183,6 +194,28 @@ export default {
         font-size: 15px;
         padding-bottom: 1.5px;
         margin-left: 9px;
+        // 所有项默认浅灰色
+        ::v-deep .el-breadcrumb__item .el-breadcrumb__inner {
+          color: #909399;
+          font-weight: 400;
+          transition: color 0.2s ease;
+        }
+
+        // 前面项悬停时变深色 + 手型
+        ::v-deep
+          .el-breadcrumb__item:not(:last-child):hover
+          .el-breadcrumb__inner {
+          color: #303133;
+          font-weight: 450;
+          cursor: pointer;
+        }
+
+        // ✅ 最后一项始终为深色
+        ::v-deep .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+          color: #303133;
+          font-weight: 500;
+          cursor: default;
+        }
       }
       /* 当屏幕宽度 ≤ 768px 时隐藏面包屑 */
       @media (max-width: 768px) {
@@ -195,8 +228,14 @@ export default {
       }
     }
   }
-  .my-el-main {
-    background-color: greenyellow;
+  .el-main {
+    display: block;
+    flex: 1;
+    flex-basis: auto;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 0px;
+    margin: 22px 0px 0px 0px; /* 上右下左 */
   }
 }
 </style>

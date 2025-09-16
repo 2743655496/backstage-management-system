@@ -4,16 +4,37 @@
       <img src="@/assets/404.png" alt="Brand Logo" class="logo" />
       <h1>Oops! 页面走丢了 🧭</h1>
       <p>你是不是走得太快，把页面甩丢了？<br />别担心，我们带你回家 🏡</p>
-      <router-link to="/" class="home-button">返回首页</router-link>
+      <router-link
+        :to="redirectPath"
+        class="home-button"
+      >
+        {{ redirectLabel }}
+      </router-link>
     </div>
   </div>
 </template>
 
+
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
-  name: 'NotFound'
+  name: 'NotFound',
+  computed: {
+    ...mapGetters('LoginModule', ['id']),
+    isLoggedIn() {
+      return !!this.id
+    },
+    redirectPath() {
+      return this.isLoggedIn ? '/dashboard/analysis' : '/auth/login'
+    },
+    redirectLabel() {
+      return this.isLoggedIn ? '返回首页' : '返回登录'
+    }
+  }
 }
 </script>
+
 
 <style scoped>
 .not-found {

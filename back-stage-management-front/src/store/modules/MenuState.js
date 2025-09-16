@@ -1,3 +1,4 @@
+import { resolveMenuPath } from '@/utils/menuResolver'
 // MenuStateModule.js
 const MenuStateModule = {
   namespaced: true,
@@ -7,37 +8,23 @@ const MenuStateModule = {
   },
   mutations: {
     // 设置当前菜单
-    SET_CURRENT_MENU(state, { menu, index }) {
+    SET_CURRENT_MENU(state, menus) {
       // 确保 CurrentMenu 是数组
-      if (!Array.isArray(state.CurrentMenu)) {
-        state.CurrentMenu = []
-      }
-      if (menu.children && menu.children.length !== 0) {
-        // 清空当前菜单，然后添加新菜单
-        state.CurrentMenu = [menu, menu.children[index]]
-      } else {
-        // 如果没有子菜单，只添加当前菜单
-        state.CurrentMenu = [menu]
-      }
+      state.CurrentMenu = menus
     },
 
     // 添加标签页菜单
-    ADD_TAB_MENU(state, { menu, index }) {
-      // 检查是否已存在
-      let tabindex = null; // 使用 let 而不是 const
+    ADD_TAB_MENU(state, menu) {
 
-      if (menu.children && menu.children.length !== 0) {
-        tabindex = state.TabMenu.findIndex(item => item.router_path === menu.children[index].router_path);
-        if (tabindex === -1) {
-          state.TabMenu.push(menu.children[index])
-        }
-      } else {
-        // 检查当前菜单项是否已存在
-        tabindex = state.TabMenu.findIndex(item => item.router_path === menu.router_path);
-        if (tabindex === -1) {
-          state.TabMenu.push(menu)
-        }
+      const exists = state.TabMenu.some(item => item.path === menu.path)
+      if (!exists) {
+        state.TabMenu.push(menu)
       }
+
+      // 排序：固定标签在前
+      const fixedTags = state.TabMenu.filter(t => t.fixed)
+      const normalTags = state.TabMenu.filter(t => !t.fixed)
+      state.TabMenu = [...fixedTags, ...normalTags]
     },
 
     // 删除标签页菜单
@@ -53,14 +40,35 @@ const MenuStateModule = {
     //清楚当前选中菜单
     CLEAR_CURRENT_MENU(state) {
       state.CurrentMenu = []
+    },
+
+    // 固定或取消固定标签页
+    TOGGLE_FIXED_TAB_MENU(state, path) {
+      const index = state.TabMenu.findIndex(item => item.path === path)
+      if (index !== -1) {
+        const tag = state.TabMenu[index]
+        tag.fixed = !tag.fixed
+        // 重新排序：固定的放前面
+        const fixedTags = state.TabMenu.filter(t => t.fixed)
+        const normalTags = state.TabMenu.filter(t => !t.fixed)
+        state.TabMenu = [...fixedTags, ...normalTags]
+      }
+
+    },
+    CLEAR_ALL_MENUS(state) {
+      state.CurrentMenu = []
+      state.TabMenu = []
     }
+
   },
   actions: {
     // 异步设置当前菜单
-    setCurrentMenu({ commit }, [menu, index]) {
-      commit('SET_CURRENT_MENU', { menu, index })
+    setCurrentMenuaddTabMenu({ commit, rootGetters }, path) {
+      const menus = rootGetters['PermissionModule/menuPermissions']
+      const result = resolveMenuPath(menus, path)
+      commit('SET_CURRENT_MENU', result.currentMenu)
       // 自动添加到标签页
-      commit('ADD_TAB_MENU', { menu, index })
+      commit('ADD_TAB_MENU', result.tabMenu)
     },
 
     // 添加标签页
@@ -81,6 +89,15 @@ const MenuStateModule = {
     // 清空标签页
     clearTabMenu({ commit }) {
       commit('CLEAR_TAB_MENU')
+    },
+
+    // 切换标签页固定状态
+    toggleFixedTabMenu({ commit }, path) {
+      commit('TOGGLE_FIXED_TAB_MENU', path)
+    },
+
+    clearAllMenus({ commit }) {
+      commit('CLEAR_ALL_MENUS')
     }
   },
   getters: {

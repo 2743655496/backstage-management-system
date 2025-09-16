@@ -27,20 +27,81 @@
           </div>
 
           <ul class="menu">
-            <li @click="goToDocs">📄 文档</li>
-            <li @click="goToGithub">🐙 GitHub</li>
-            <li @click="goToHelp">❓ 问题 & 帮助</li>
-            <li @click="lockScreen">
-              🔒 锁定屏幕 <span class="shortcut">Alt + L</span>
+            <li
+              @click="goToDocs"
+              style="display: flex; align-items: center; gap: 5px"
+            >
+              <span>📄</span> <span>文档</span>
             </li>
-            <li @click="logoutdialogVisible = true">
-              🚪 退出登录<span class="shortcut">Alt + Q</span>
+            <li
+              @click="goToGithub"
+              style="display: flex; align-items: center; gap: 5px"
+            >
+              <svg
+                class="icon"
+                aria-hidden="true"
+                style="width: 12px; height: 12px; margin-left: 2.4"
+              >
+                <use xlink:href="#icon-GITEE"></use>
+              </svg>
+              <span>Gitee</span>
+            </li>
+            <li
+              @click="goToHelp"
+              style="display: flex; align-items: center; gap: 5px"
+            >
+              <span>❓</span> <span>问题 & 帮助</span>
+            </li>
+            <li
+              @click="lockScreen"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 5px">
+                <span>🔒</span> <span>锁定屏幕</span>
+              </div>
+              <span
+                class="shortcut"
+                style="display: flex; align-items: center; gap: 7.6px"
+                ><span>Alt</span><span>L</span></span
+              >
+            </li>
+            <li
+              @click="logoutdialogVisible = true"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 5px">
+                <svg
+                  class="icon"
+                  aria-hidden="true"
+                  style="width: 12px; height: 12px; margin-left: 2.3"
+                >
+                  <use xlink:href="#icon-tuichudenglu"></use></svg
+                ><span> 退出登录</span>
+              </div>
+              <span
+                class="shortcut"
+                style="display: flex; align-items: center; gap: 5px"
+                ><span>Alt</span><span>Q</span></span
+              >
             </li>
           </ul>
         </div>
       </transition>
     </div>
-    <el-dialog title="提示" :visible.sync="logoutdialogVisible" width="30%" append-to-body>
+    <el-dialog
+      title="提示"
+      :visible.sync="logoutdialogVisible"
+      width="30%"
+      append-to-body
+    >
       <span>是否退出登录？</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="logoutdialogVisible = false">取 消</el-button>
@@ -51,8 +112,8 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import { toLogout } from "@/api/index.js";
+import { mapGetters, mapActions } from "vuex";
+
 export default {
   name: "IconDropdown",
   computed: {
@@ -82,12 +143,13 @@ export default {
   },
 
   methods: {
+    // 模块 actions
+    ...mapActions("LockModule", ["setShowSetPassword"]),
     handleKeydown(event) {
       // 检查是否按下 Alt + Q
       if (event.altKey && event.key.toLowerCase() === "q") {
         event.preventDefault(); // 阻止默认行为（可选）
-        this.logoutdialogVisible = true
-        // this.logout(); // 调用退出方法
+        this.logoutdialogVisible = true;
       }
     },
     handleIconClick() {
@@ -106,42 +168,31 @@ export default {
       }
     },
     goToDocs() {
-      this.$router.push("/docs");
+      this.$message.warning("此功能暂未开发，等待更新");
+      // this.$router.push("/docs");
       this.closeDropdown();
     },
     goToGithub() {
-      window.open("https://github.com/your-repo", "_blank");
+      this.$message.warning("此功能暂未开发，等待更新");
+      // window.open("https://github.com/your-repo", "_blank");
       this.closeDropdown();
     },
     goToHelp() {
-      this.$router.push("/help");
+      this.$message.warning("此功能暂未开发，等待更新");
+      // this.$router.push("/help");
       this.closeDropdown();
     },
     lockScreen() {
+      this.setShowSetPassword(true);
       console.log("锁定屏幕");
       this.closeDropdown();
     },
     logout() {
-      // 调用后端退出接口
-      toLogout()
-        .then(() => {
-          // 清除 Vuex 中的用户信息
-          this.$store.commit("LoginModule/clearUser");
-
-          // 清除前端 Cookie（如果你用 js-cookie 管理）
-          // this.$cookies.remove('access_token');
-          // this.$cookies.remove('refresh_token');
-
-          // 跳转到登录页
-          this.$router.push("/auth/login");
-        })
-        .catch((error) => {
-          console.error("退出登录失败:", error);
-          this.$message.error("退出登录失败，请稍后重试");
-        })
-        .finally(() => {
-          this.closeDropdown();
-        });
+      this.$store.dispatch("LoginModule/logout", {
+        router: this.$router,
+        message: this.$message,
+      });
+      this.closeDropdown;
     },
   },
 };
@@ -151,8 +202,11 @@ export default {
 ::v-deep .el-dialog {
   margin-top: 0 !important;
   top: 40% !important;
-  transform: translateY(-50%) !important;}
+  transform: translateY(-50%) !important;
+}
 .icon-dropdown {
+  margin-left: 4px;
+  margin-right: 4px;
   position: relative;
   display: inline-block;
 }
@@ -186,7 +240,7 @@ export default {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   font-family: "Segoe UI", "PingFang SC", sans-serif;
-  z-index: 1000;
+  z-index: 4;
   overflow: hidden;
 }
 

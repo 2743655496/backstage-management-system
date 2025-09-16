@@ -1,7 +1,5 @@
 <template>
-  <div>
-    用户
-  </div>
+  <div>部门管理</div>
 </template>
 
 <script>

@@ -120,7 +120,6 @@ export default {
     },
   },
   mounted() {
-    // checkAuth()
   },
   methods: {
     ...mapActions("LanguageModule", ["changeLanguage"]),

@@ -27,7 +27,7 @@ export const getSearchList = (params) => ajax.get(base.searchList, { params })
  * 参数：username,password,slider_token,remember
  */
 export const toLogin = (params) => {
-    return ajax.post(base.login, params)
+  return ajax.post(base.login, params)
 }
 
 /**
@@ -36,21 +36,28 @@ export const toLogin = (params) => {
  */
 
 export const toslider_verify = (params) => {
-    return ajax.post(base.slider_verify, params)
+  return ajax.post(base.slider_verify, params)
 }
 
 /**
  * 检查当前token是否失效
  */
-export const checkAuthStatus= () => {
+export const checkAuthStatus = () => {
   return ajax.get(base.checklogin);
 }
 
 /**
  * 退出登录
  */
-export const toLogout= () => {
+export const toLogout = () => {
   return ajax.post(base.logout);
+}
+
+/**
+ * 获取权限信息
+ */
+export const toGetPermission = () => {
+  return ajax.get(base.get_permission);
 }
 
 
