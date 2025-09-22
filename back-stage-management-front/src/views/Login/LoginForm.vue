@@ -120,7 +120,7 @@
 
 <script>
 import SliderVerify from "@/components/Login/SliderVerify.vue";
-import { toslider_verify, toLogin } from "@/api/index.js";
+import { toslider_verify, toLogin } from "@/api/login.js";
 export default {
   components: {
     SliderVerify,

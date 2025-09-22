@@ -1,10 +1,9 @@
 import logging
 import uuid
 import jwt
-import json
-from rest_framework import viewsets
-from .models import Department, Role, User,UserRole, RolePermission, Permission, Menu
-from .serializers import DepartmentSerializer, RoleSerializer, UserSerializer, PermissionSerializer, UserLoginSerializer
+from uuid import uuid4
+from .models import Department, Role, User, UserRole, RolePermission, Permission, Menu
+from .serializers import UserLoginSerializer
 from .utils.jwt_utils import JWTUtils
 from django.utils import timezone
 from rest_framework.views import APIView
@@ -13,27 +12,8 @@ from rest_framework import status
 from django.conf import settings
 from utils.redis_client import RedisClient
 
-
 # 获取审计日志 logger
 audit_logger = logging.getLogger('audit')
-class DepartmentViewSet(viewsets.ModelViewSet):
-    queryset = Department.objects.all()
-    serializer_class = DepartmentSerializer
-
-
-class RoleViewSet(viewsets.ModelViewSet):
-    queryset = Role.objects.all()
-    serializer_class = RoleSerializer
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
-class PermissionViewSet(viewsets.ModelViewSet):
-    queryset = Permission.objects.all()
-    serializer_class = PermissionSerializer
 
 
 class SliderVerifyView(APIView):
@@ -63,6 +43,8 @@ class SliderVerifyView(APIView):
         jitter_ratio = jitter_count / len(trail)
 
         return duration >= 250 or jitter_ratio >= 0.3
+
+
 class LoginView(APIView):
     def post(self, request):
         slider_token = request.data.get('slider_token')
@@ -175,18 +157,18 @@ class TokenRefreshView(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
-            return Response({'code':401,'error': '缺少 Refresh Token'})
+            return Response({'code': 401, 'error': '缺少 Refresh Token'})
         try:
             payload = JWTUtils.verify_token(refresh_token)
             user = User.objects.get(id=payload['user_id'], is_deleted=0, status=1)
         except Exception:
-            return Response({'code':401,'error': 'Refresh Token 无效或已过期'})
+            return Response({'code': 401, 'error': 'Refresh Token 无效或已过期'})
 
         new_access_token = JWTUtils.create_access_token(user)
-        response = Response({'code':200,'message': 'Token 已刷新'})
-        response.set_cookie('access_token', new_access_token, httponly=True, secure=not settings.DEBUG, samesite='Strict', max_age=3600)
+        response = Response({'code': 200, 'message': 'Token 已刷新'})
+        response.set_cookie('access_token', new_access_token, httponly=True, secure=not settings.DEBUG,
+                            samesite='Strict', max_age=3600)
         return response
-
 
 
 class UserProfileView(APIView):
@@ -227,13 +209,6 @@ class LogoutView(APIView):
         return response
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import UserRole, RolePermission, Permission, Menu
-from utils.redis_client import RedisClient
-import json
-
 class UserPermissionView(APIView):
 
     def get(self, request):
@@ -241,9 +216,9 @@ class UserPermissionView(APIView):
         cache_key = f"user:permissions:tree:{user_id}"
 
         # 尝试从 Redis 获取缓存
-        cached = RedisClient.get(cache_key)
-        if cached:
-            return Response(json.loads(cached))
+        # cached = RedisClient.get(cache_key)
+        # if cached:
+        #     return Response(json.loads(cached))
 
         # 获取用户角色
         role_ids = UserRole.objects.filter(user_id=user_id).values_list('role_id', flat=True)
@@ -262,6 +237,7 @@ class UserPermissionView(APIView):
         menu_ids = permissions.filter(type=1).values_list('menu_id', flat=True)
         menus = Menu.objects.filter(id__in=menu_ids, status=1, is_deleted=0).order_by('sort')
         menus_list = []
+
         # 构建菜单树
         def build_tree(menu_list, parent_id=0):
             tree = []
@@ -278,11 +254,11 @@ class UserPermissionView(APIView):
                     tree.append(item)
                     if parent_id != 0:
                         menus_list.append({
-                        'id': menu.id,
-                        'name': menu.name,
-                        'path': menu.path,
-                        'component': menu.component,
-                    })
+                            'id': menu.id,
+                            'name': menu.name,
+                            'path': menu.path,
+                            'component': menu.component,
+                        })
             return tree
 
         menu_permissions = build_tree(list(menus))
@@ -305,13 +281,101 @@ class UserPermissionView(APIView):
             })
 
         result = {
-            "menus_list":menus_list,
+            "menus_list": menus_list,
             'menu_permissions': menu_permissions,
             'permission_map': permission_map
         }
 
         # 缓存结果（5分钟）
-        RedisClient.set(cache_key, json.dumps(result), ex=300)
+        # RedisClient.set(cache_key, json.dumps(result), ex=300)
 
         return Response(result)
 
+
+class MenuListView(APIView):
+    def get(self, request):
+        def build_tree(menu_list, parent_id=0):
+            tree = []
+            for menu in menu_list:
+                if menu.parent_id == parent_id:
+                    children = build_tree(menu_list, menu.id)
+                    tree.append({
+                        "id": menu.id,
+                        "name": menu.name,
+                        "icon": menu.icon,
+                        "path": menu.path,
+                        "component": menu.component,
+                        "sort": menu.sort,
+                        "status": menu.status,
+                        "children": children,
+                        "parent_id": menu.parent_id,
+                    })
+            return sorted(tree, key=lambda x: x["sort"])
+
+        menus = Menu.objects.filter(is_deleted=0).order_by("sort")
+        tree = build_tree(list(menus))
+        return Response({"data": tree})
+
+
+class MenuCreateView(APIView):
+    def post(self, request):
+        data = request.data
+        menu = Menu.objects.create(
+            parent_id=data.get("parent_id", 0),
+            name=data["name"],
+            icon=data.get("icon"),
+            path=data.get("path"),
+            component=data.get("component"),
+            sort=data.get("sort", 0),
+            status=data.get("status", 1),
+            creator_id=request.user.id if request.user.is_authenticated else None
+        )
+
+        permission = Permission.objects.create(
+            name=f"{menu.name}页面权限",
+            code=f"menu:{menu.id}:{uuid4().hex[:8]}",
+            type=1,
+            menu_id=menu.id,
+            parent_id=0,
+            status=1,
+            creator_id=request.user.id if request.user.is_authenticated else None
+        )
+
+        RolePermission.objects.get_or_create(
+            role_id=1,
+            permission_id=permission.id,
+            defaults={"creator_id": request.user.id if request.user.is_authenticated else None}
+        )
+
+        return Response({"message": "菜单创建成功", "menu_id": menu.id}, status=status.HTTP_201_CREATED)
+
+
+class MenuUpdateView(APIView):
+    def post(self, request, menu_id):
+        data = request.data
+        try:
+            menu = Menu.objects.get(id=menu_id, is_deleted=0)
+        except Menu.DoesNotExist:
+            return Response({"error": "菜单不存在"}, status=status.HTTP_404_NOT_FOUND)
+
+        for field in ["name", "icon", "path", "component", "sort", "status"]:
+            if field in data:
+                setattr(menu, field, data[field])
+        menu.update_time = timezone.now()
+        menu.save()
+
+        return Response({"message": "菜单更新成功"})
+
+
+class MenuDeleteView(APIView):
+    def post(self, request, menu_id):
+        try:
+            menu = Menu.objects.get(id=menu_id, is_deleted=0)
+        except Menu.DoesNotExist:
+            return Response({"error": "菜单不存在"}, status=status.HTTP_404_NOT_FOUND)
+
+        menu.is_deleted = 1
+        menu.update_time = timezone.now()
+        menu.save()
+
+        return Response({"message": "菜单已删除"})

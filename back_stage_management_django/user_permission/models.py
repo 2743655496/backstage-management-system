@@ -88,7 +88,7 @@ class UserRole(models.Model):
 
 
 class Menu(models.Model):
-    parent_id = models.BigIntegerField(default=0, verbose_name='父菜单ID')
+    parent_id = models.BigIntegerField(default=0, verbose_name='父菜单ID（0目录）')
     name = models.CharField(max_length=50, verbose_name='菜单名称')
     icon = models.CharField(max_length=50, blank=True, null=True, verbose_name='菜单图标')
     path = models.CharField(max_length=100, blank=True, null=True, verbose_name='路由路径')
@@ -112,10 +112,15 @@ class Menu(models.Model):
 
 
 class Permission(models.Model):
+    PERMISSION_TYPE_CHOICES = (
+        (1, '菜单权限'),
+        (2, '接口权限'),
+        (3, '按钮权限'),
+    )
     name = models.CharField(max_length=50, verbose_name='权限名称')
     code = models.CharField(max_length=100, unique=True, verbose_name='权限标识')
     description = models.TextField(blank=True, null=True, verbose_name='权限描述')
-    type = models.SmallIntegerField(verbose_name='权限类型(1 表示菜单权限,2 接口权限)')
+    type = models.SmallIntegerField(choices=PERMISSION_TYPE_CHOICES, verbose_name='权限类型')
     menu_id = models.BigIntegerField(blank=True, null=True, verbose_name='关联菜单ID(仅页面权限需要)')
     parent_id = models.BigIntegerField(default=0, verbose_name='父权限ID')
     api_method = models.CharField(max_length=10, blank=True, null=True, verbose_name='接口方法')

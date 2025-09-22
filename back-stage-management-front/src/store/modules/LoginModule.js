@@ -1,4 +1,4 @@
-import { toLogout } from "@/api/index.js";
+import { toLogout } from "@/api/login.js";
 
 export default {
   namespaced: true,

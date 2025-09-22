@@ -5,7 +5,9 @@ import MenuStateModule from './modules/MenuState'
 import LanguageModule from './modules/LanguageModule'
 import LockModule from './modules/Lock'
 import PermissionModule from './modules/PermissionModule'
+import chartRenderKey from './modules/chartRenderKey';
 import createPersistedState from 'vuex-persistedstate'
+
 
 Vue.use(Vuex)
 
@@ -23,7 +25,8 @@ export default new Vuex.Store({
     MenuStateModule,
     LanguageModule,
     LockModule,
-    PermissionModule
+    PermissionModule,
+    chartRenderKey
   },
   plugins: [
     createPersistedState({

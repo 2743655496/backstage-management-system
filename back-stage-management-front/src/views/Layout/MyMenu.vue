@@ -49,7 +49,7 @@
             :index="child.path"
             @click="updateMenu(child.path)"
           >
-            <i :class="child.icon"></i>
+            <i :class="['menu-icon', child.icon]"></i>
             <span slot="title">{{ child.name }}</span>
           </el-menu-item>
         </el-menu-item-group>
@@ -116,5 +116,13 @@ export default {
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;
   min-height: 400px;
+}
+.menu-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  color: inherit;
 }
 </style>

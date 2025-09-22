@@ -16,7 +16,9 @@ echarts.use([
   CanvasRenderer,
   LabelLayout,
 ]);
+
 let resizeTimer = null;
+
 export default {
   name: "RoseChart",
   props: {
@@ -37,37 +39,56 @@ export default {
   data() {
     return {
       chartInstance: null,
+      isMounted: false, // ✅ 挂载标志
+      _resizeHandler: null,
     };
   },
   mounted() {
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.initChart();
-        window.addEventListener("resize", () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            this.chartInstance.resize();
-          }, 200); // ✅ 200ms后执行，用户停止拖动才触发
-        });
-      }, 300);
-    });
+    this.isMounted = true;
+    this.safeInitChart(); // ✅ 使用封装方法
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resizeChart);
+    this.isMounted = false;
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+    }
     if (this.chartInstance) {
       this.chartInstance.dispose();
+      this.chartInstance = null;
     }
   },
   methods: {
-    initChart() {
-      this.chartInstance = echarts.init(this.$refs.chartRef, this.theme);
+    safeInitChart() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (!this.isMounted) return;
+          const container = this.$refs.chartRef;
+          if (!container || container.offsetWidth === 0) return;
+
+          this.initChart(container);
+
+          this._resizeHandler = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              this.resizeChart();
+            }, 200);
+          };
+          window.addEventListener("resize", this._resizeHandler);
+        }, 300); // ✅ 延迟初始化，确保容器尺寸稳定
+      });
+    },
+    initChart(container) {
+      const containerWidth = container.offsetWidth;
+      const minRadius = containerWidth * 0.1;
+      const maxRadius = containerWidth * 0.3;
+
+      this.chartInstance = echarts.init(container, this.theme);
       const option = {
         legend: {
           orient: "horizontal",
-          bottom: 15, // ✅ 距离底部 20px
+          bottom: 15,
           left: "center",
         },
-
         toolbox: {
           show: true,
           feature: {
@@ -79,8 +100,8 @@ export default {
           {
             name: "访问结构",
             type: "pie",
-            radius: [30, 100], // ✅ 缩小图形尺寸
-            center: ["50%", "50%"], // ✅ 调整位置居中偏下
+            radius: [minRadius, maxRadius],
+            center: ["50%", "50%"],
             roseType: "area",
             itemStyle: {
               borderRadius: 8,
@@ -97,6 +118,21 @@ export default {
     },
     resizeChart() {
       if (this.chartInstance) {
+        const container = this.$refs.chartRef;
+        if (!container || container.offsetWidth === 0) return;
+
+        const containerWidth = container.offsetWidth;
+        const minRadius = containerWidth * 0.1;
+        const maxRadius = containerWidth * 0.35;
+
+        this.chartInstance.setOption({
+          series: [
+            {
+              radius: [minRadius, maxRadius],
+            },
+          ],
+        });
+
         this.chartInstance.resize();
       }
     },
@@ -107,7 +143,6 @@ export default {
 <style scoped>
 .chart-container {
   width: 100%;
-  height: 100%; /* ✅ 不再用 aspect-ratio 或 padding 技巧 */
-  overflow: hidden;
+  height: 100%;
 }
 </style>

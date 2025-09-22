@@ -3,24 +3,7 @@
  */
 import ajax from "./ajax"
 import base from "./base"
-import qs from 'qs'; // 确保这一行存在
-/**
- * 查询商品列表
- * params:{page:}
- */
-
-export const getGoodsList = () => ajax.get(base.goodslist, { params })
-
-/**
- * 查询搜素列表
- * get传参方式
- * 1.字符串拼接 ？search=xxx&name=123
- * 2.params axios.get(url,{params:{search:xx}})
- * params:{search:xx}
- */
-export const getSearchList = (params) => ajax.get(base.searchList, { params })
-
-
+import qs from 'qs'; 
 
 /**
  * 登录

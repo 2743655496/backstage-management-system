@@ -1,13 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import DepartmentViewSet, RoleViewSet, UserViewSet, PermissionViewSet
-from .views import LoginView, TokenRefreshView, UserProfileView,LogoutView,SliderVerifyView,AuthStatusView,UserPermissionView
+from .views import LoginView, TokenRefreshView, UserProfileView,LogoutView,SliderVerifyView,AuthStatusView,UserPermissionView,MenuListView,MenuCreateView,MenuDeleteView,MenuUpdateView
 
 router = DefaultRouter()
-router.register(r'departments', DepartmentViewSet)
-router.register(r'roles', RoleViewSet)
-router.register(r'users', UserViewSet)
-router.register(r'permissions', PermissionViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -18,5 +13,10 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('userinfo/', UserProfileView.as_view(), name='user-profile'),
     path('permission/', UserPermissionView.as_view(), name='user-permission'),
+    #菜单管理
+    path('menus/', MenuListView.as_view()),
+    path('menus/create/', MenuCreateView.as_view()),
+    path('menus/update/<int:menu_id>/', MenuUpdateView.as_view()),
+    path('menus/delete/<int:menu_id>/', MenuDeleteView.as_view()),
 ]
 

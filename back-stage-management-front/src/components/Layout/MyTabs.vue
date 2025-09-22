@@ -260,9 +260,10 @@ export default {
 
 <style lang="less" scoped>
 .rowtwo {
+  border: 1px solid #ebeef5; /* 新增左侧边框 */
   display: flex;
   align-items: center;
-  height: 32.5px;
+  height: 34px;
   background: #f5f7fa;
   overflow: hidden; // 隐藏溢出的内容
 

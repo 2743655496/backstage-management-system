@@ -9,7 +9,9 @@ import { BarChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 
 echarts.use([GridComponent, BarChart, CanvasRenderer]);
+
 let resizeTimer = null;
+
 export default {
   name: "BarChart",
   props: {
@@ -21,31 +23,49 @@ export default {
   data() {
     return {
       chartInstance: null,
+      isMounted: false, // ✅ 挂载标志
+      _resizeHandler: null,
     };
   },
   mounted() {
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.initChart();
-        window.addEventListener("resize", () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            this.chartInstance.resize();
-          }, 200); // ✅ 200ms后执行，用户停止拖动才触发
-        });
-      }, 300);
-    });
+    this.isMounted = true;
+    this.safeInitChart(); // ✅ 使用封装方法
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resizeChart);
+    this.isMounted = false;
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+    }
     if (this.chartInstance) {
       this.chartInstance.dispose();
+      this.chartInstance = null;
     }
   },
   methods: {
-    initChart() {
-      this.chartInstance = echarts.init(this.$refs.chartRef, this.theme);
-      const option = {
+    safeInitChart() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (!this.isMounted) return;
+          const container = this.$refs.chartRef;
+          if (!container || container.offsetWidth === 0) return;
+
+          this.chartInstance = echarts.init(container, this.theme);
+          this.chartInstance.setOption(this.getChartOption());
+
+          this._resizeHandler = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              if (this.chartInstance) {
+                this.chartInstance.resize();
+              }
+            }, 200);
+          };
+          window.addEventListener("resize", this._resizeHandler);
+        }, 300); // ✅ 延迟初始化，确保容器尺寸稳定
+      });
+    },
+    getChartOption() {
+      return {
         toolbox: {
           feature: {
             saveAsImage: {},
@@ -60,18 +80,8 @@ export default {
         xAxis: {
           type: "category",
           data: [
-            "1月",
-            "2月",
-            "3月",
-            "4月",
-            "5月",
-            "6月",
-            "7月",
-            "8月",
-            "9月",
-            "10月",
-            "11月",
-            "12月",
+            "1月", "2月", "3月", "4月", "5月", "6月",
+            "7月", "8月", "9月", "10月", "11月", "12月",
           ],
         },
         yAxis: {
@@ -84,12 +94,6 @@ export default {
           },
         ],
       };
-      this.chartInstance.setOption(option);
-    },
-    resizeChart() {
-      if (this.chartInstance) {
-        this.chartInstance.resize();
-      }
     },
   },
 };

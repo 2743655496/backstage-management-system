@@ -42,7 +42,6 @@
 </template>
 
 <script>
-import { toLogout } from "@/api/index.js";
 import { mapActions } from "vuex";
 export default {
   props: ["avatar"],

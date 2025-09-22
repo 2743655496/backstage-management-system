@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { Message,Button, Menu, Submenu, MenuItem, MenuItemGroup, Table, TableColumn, Input, InputNumber, Pagination, Breadcrumb, BreadcrumbItem, Form, FormItem, DatePicker, TimeSelect, TimePicker, Col, Dialog, Dropdown, DropdownMenu, DropdownItem, Tooltip, Container, Header, Aside, Main, Footer, Row, Tag, Checkbox, Link, Divider } from 'element-ui'
+import {Popover,Tree,Option,Select,Switch, Radio, RadioGroup, Drawer, Card,Message,Button, Menu, Submenu, MenuItem, MenuItemGroup, Table, TableColumn, Input, InputNumber, Pagination, Breadcrumb, BreadcrumbItem, Form, FormItem, DatePicker, TimeSelect, TimePicker, Col, Dialog, Dropdown, DropdownMenu, DropdownItem, Tooltip, Container, Header, Aside, Main, Footer, Row, Tag, Checkbox, Link, Divider } from 'element-ui'
 
 Vue.use(Button)
 Vue.use(Menu);
@@ -34,5 +34,14 @@ Vue.use(Tag);
 Vue.use(Checkbox);
 Vue.use(Link);
 Vue.use(Divider);
+Vue.use(Card);
+Vue.use(Drawer) // ✅ 注册 Drawer 组件
+Vue.use(Switch)
+Vue.use(Radio)
+Vue.use(RadioGroup)
+Vue.use(Select)
+Vue.use(Option)
+Vue.use(Tree)
+Vue.use(Popover)
 
 Vue.prototype.$message = Message;

@@ -103,6 +103,7 @@ export default {
   },
   methods: {
     ...mapActions("MenuStateModule", ["setCurrentMenuaddTabMenu"]),
+    ...mapActions("chartRenderKey", ["triggerChartRemount"]),
     checkScreenWidth() {
       this.shouldHideMenuButton = window.innerWidth <= 776;
     },
@@ -111,6 +112,10 @@ export default {
      */
     changeMenu() {
       this.$emit("changeMenu");
+      if (this.$route.path === '/dashboard/analysis') {
+
+        this.triggerChartRemount()
+      }
     },
     navigateTo(item) {
       const targetPath = item.children?.[0]?.path || item.path;
@@ -229,6 +234,7 @@ export default {
     }
   }
   .el-main {
+    background-color: #f5f7fa;
     display: block;
     flex: 1;
     flex-basis: auto;
@@ -236,6 +242,16 @@ export default {
     box-sizing: border-box;
     padding: 0px;
     margin: 22px 0px 0px 0px; /* 上右下左 */
+  }
+  .el-main::-webkit-scrollbar {
+    width: 8px;
+  }
+  .el-main::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 4px;
+  }
+  .el-main::-webkit-scrollbar-track {
+    background-color: #f5f5f5;
   }
 }
 </style>

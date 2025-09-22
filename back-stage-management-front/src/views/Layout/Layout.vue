@@ -45,7 +45,6 @@ import { mapState, mapActions } from "vuex";
 import avatar from "@/assets/horse.png";
 import Content from "./MyContent.vue";
 import MyMenu from "./MyMenu.vue";
-// import { checkAuth } from "@/utils/auth";
 export default {
   components: {
     MyMenu,
@@ -65,9 +64,6 @@ export default {
   computed: {
     // 数组形式 - 同名映射
     ...mapState("LockModule", ["isLocked", "LockPassword", "showSetPassword"]),
-  },
-  mounted() {
-    // checkAuth();
   },
   mounted() {
     window.addEventListener("keydown", this.handleKeydown);

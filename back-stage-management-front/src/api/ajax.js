@@ -30,9 +30,9 @@ service.interceptors.response.use(res => {
         if (res.data.code != 200) {
             // 清除 Vuex 中的用户信息
             store.commit('LoginModule/clearUser');
-            store.commit('PermissionModule/clearPermissions');
-            store.commit('MenuStateModule/clearAllMenus');
-            store.commit('LockModule/clearLock');
+            store.dispatch('PermissionModule/clearPermissions');
+            store.dispatch('MenuStateModule/clearAllMenus');
+            store.dispatch('LockModule/clearLock');
             Message({
                 showClose: true,
                 message: '未登录或登录已过期',

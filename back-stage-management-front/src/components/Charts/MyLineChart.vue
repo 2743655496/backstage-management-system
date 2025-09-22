@@ -25,7 +25,9 @@ echarts.use([
   CanvasRenderer,
   UniversalTransition,
 ]);
+
 let resizeTimer = null;
+
 export default {
   name: "LineChart",
   props: {
@@ -37,32 +39,50 @@ export default {
   data() {
     return {
       chartInstance: null,
+      isMounted: false, // ✅ 挂载标志
+      _resizeHandler: null,
     };
   },
-
   mounted() {
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.initChart();
-        window.addEventListener("resize", () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            this.chartInstance.resize();
-          }, 200); // ✅ 200ms后执行，用户停止拖动才触发
-        });
-      }, 300);
-    });
+    this.isMounted = true;
+    this.safeInitChart();
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resizeChart);
+    this.isMounted = false;
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+    }
     if (this.chartInstance) {
       this.chartInstance.dispose();
+      this.chartInstance = null;
     }
   },
   methods: {
-    initChart() {
-      this.chartInstance = echarts.init(this.$refs.chartRef, this.theme);
-      const option = {
+    safeInitChart() {
+  this.$nextTick(() => {
+    setTimeout(() => {
+      if (!this.isMounted) return;
+      const container = this.$refs.chartRef;
+      if (!container || container.offsetWidth === 0) return;
+
+      this.chartInstance = echarts.init(container, this.theme);
+      this.chartInstance.setOption(this.getChartOption());
+
+      this._resizeHandler = () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (this.chartInstance) {
+            this.chartInstance.resize();
+          }
+        }, 200);
+      };
+      window.addEventListener("resize", this._resizeHandler);
+    }, 300); // ✅ 延迟 300ms 等待容器宽度稳定
+  });
+},
+
+    getChartOption() {
+      return {
         grid: {
           left: "0px",
           right: "0px",
@@ -103,7 +123,6 @@ export default {
             name: "Email",
             type: "line",
             stack: "Total",
-
             areaStyle: {},
             emphasis: { focus: "series" },
             data: [120, 132, 101, 134, 90, 230, 210],
@@ -146,12 +165,6 @@ export default {
           },
         ],
       };
-      this.chartInstance.setOption(option);
-    },
-    resizeChart() {
-      if (this.chartInstance) {
-        this.chartInstance.resize();
-      }
     },
   },
 };

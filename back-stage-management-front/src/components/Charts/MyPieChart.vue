@@ -16,7 +16,9 @@ echarts.use([
   CanvasRenderer,
   LabelLayout,
 ]);
+
 let resizeTimer = null;
+
 export default {
   name: "PieChart",
   props: {
@@ -38,36 +40,49 @@ export default {
   data() {
     return {
       chartInstance: null,
-      lastWidth: window.innerWidth,
+      isMounted: false, // ✅ 挂载标志
+      _resizeHandler: null,
     };
   },
   mounted() {
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.initChart();
-        window.addEventListener("resize", () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            this.chartInstance.resize();
-          }, 200); // ✅ 200ms后执行，用户停止拖动才触发
-        });
-      }, 300);
-    });
+    this.isMounted = true;
+    this.safeInitChart();
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resizeChart);
+    this.isMounted = false;
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+    }
     if (this.chartInstance) {
       this.chartInstance.dispose();
+      this.chartInstance = null;
     }
   },
   methods: {
-    initChart() {
-      this.chartInstance = echarts.init(this.$refs.chartRef, this.theme);
-      const option = {
-        radar: {
-          radius: "60%", // ✅ 图形大小相对容器宽度
-          center: ["50%", "50%"], // ✅ 居中显示
-        },
+    safeInitChart() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (!this.isMounted) return;
+          const container = this.$refs.chartRef;
+          if (!container || container.offsetWidth === 0) return;
+
+          this.chartInstance = echarts.init(container, this.theme);
+          this.chartInstance.setOption(this.getChartOption());
+
+          this._resizeHandler = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              if (this.chartInstance) {
+                this.chartInstance.resize();
+              }
+            }, 200);
+          };
+          window.addEventListener("resize", this._resizeHandler);
+        }, 300); // ✅ 延迟初始化，确保容器尺寸稳定
+      });
+    },
+    getChartOption() {
+      return {
         tooltip: {
           trigger: "item",
         },
@@ -109,12 +124,6 @@ export default {
           },
         ],
       };
-      this.chartInstance.setOption(option);
-    },
-    resizeChart() {
-      if (this.chartInstance) {
-        this.chartInstance.resize();
-      }
     },
   },
 };

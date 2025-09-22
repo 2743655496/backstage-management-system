@@ -29,8 +29,12 @@
         </div>
 
         <div class="chart-placeholder">
-          <LineChart theme="light" v-if="activeTab == '流量趋势'" />
-          <BarChart theme="light" v-else />
+          <LineChart
+            :key="chartRenderKey"
+            theme="light"
+            v-if="activeTab == '流量趋势'"
+          />
+          <BarChart :key="chartRenderKey" theme="light" v-else />
         </div>
       </div>
     </div>
@@ -40,19 +44,19 @@
       <div class="grid-box">
         <div>访问数量</div>
         <div class="chart-placeholder">
-          <RadarChart theme="light" />
+          <RadarChart :key="chartRenderKey" theme="light" />
         </div>
       </div>
       <div class="grid-box">
         <div>访问来源</div>
         <div class="chart-placeholder">
-          <PieChart :chartData="pieData" theme="light" />
+          <PieChart :key="chartRenderKey" :chartData="pieData" theme="light" />
         </div>
       </div>
       <div class="grid-box">
         <div>访问来源</div>
         <div class="chart-placeholder">
-          <RoseChart theme="light" />
+          <RoseChart :key="chartRenderKey" theme="light" />
         </div>
       </div>
     </div>
@@ -72,6 +76,7 @@ import BarChart from "@/components/Charts/MyBarChart.vue";
 import RadarChart from "@/components/Charts/MyRadarChart.vue";
 import PieChart from "@/components/Charts/MyPieChart.vue";
 import RoseChart from "@/components/Charts/MyRoseChart.vue";
+import { mapState } from "vuex";
 export default {
   name: "AnalysisDashboard",
   components: {
@@ -81,6 +86,9 @@ export default {
     RadarChart,
     PieChart,
     RoseChart,
+  },
+  computed: {
+    ...mapState("chartRenderKey", ["chartRenderKey"]),
   },
   data() {
     return {

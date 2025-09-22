@@ -9,7 +9,9 @@ import { RadarChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 
 echarts.use([TitleComponent, LegendComponent, RadarChart, CanvasRenderer]);
+
 let resizeTimer = null;
+
 export default {
   name: "RadarChart",
   props: {
@@ -21,50 +23,52 @@ export default {
   data() {
     return {
       chartInstance: null,
+      isMounted: false, // ✅ 挂载标志
+      _resizeHandler: null,
     };
   },
   mounted() {
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.initChart();
-        window.addEventListener("resize", () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            this.chartInstance.resize();
-          }, 200); // ✅ 200ms后执行，用户停止拖动才触发
-        });
-      }, 300);
-    });
+    this.isMounted = true;
+    this.safeInitChart(); // ✅ 使用封装方法
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resizeChart);
+    this.isMounted = false;
+    if (this._resizeHandler) {
+      window.removeEventListener("resize", this._resizeHandler);
+    }
     if (this.chartInstance) {
       this.chartInstance.dispose();
+      this.chartInstance = null;
     }
   },
   methods: {
-    initChart() {
-      this.chartInstance = echarts.init(this.$refs.chartRef, this.theme);
-      const option = {
-        radar: {
-          radius: "60%", // ✅ 图形大小相对容器宽度
-          center: ["50%", "50%"], // ✅ 居中显示
-        },
+    safeInitChart() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (!this.isMounted) return;
+          const container = this.$refs.chartRef;
+          if (!container || container.offsetWidth === 0) return;
 
-        tooltip: {
-          trigger: "item",
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            saveAsImage: { show: true },
-          },
-        },
+          this.chartInstance = echarts.init(container, this.theme);
+          this.chartInstance.setOption(this.getChartOption());
 
-        legend: {
-          data: ["访问", "趋势"],
-        },
+          this._resizeHandler = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              if (this.chartInstance) {
+                this.chartInstance.resize();
+              }
+            }, 200);
+          };
+          window.addEventListener("resize", this._resizeHandler);
+        }, 300); // ✅ 延迟初始化，确保容器尺寸稳定
+      });
+    },
+    getChartOption() {
+      return {
         radar: {
+          radius: "60%",
+          center: ["50%", "50%"],
           indicator: [
             { name: "网页", max: 10000 },
             { name: "其他", max: 10000 },
@@ -74,25 +78,37 @@ export default {
             { name: "移动端", max: 10000 },
           ],
         },
+        tooltip: {
+          trigger: "item",
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: { show: true },
+          },
+        },
+        legend: {
+          data: ["访问", "趋势"],
+        },
         series: [
           {
             name: "访问趋势",
             type: "radar",
-            symbol: "circle", // 点位样式
+            symbol: "circle",
             symbolSize: 6,
             lineStyle: {
               width: 2,
             },
             areaStyle: {
-              opacity: 0.3, // 填充透明度
+              opacity: 0.3,
             },
             emphasis: {
               focus: "series",
               lineStyle: {
-                width: 4, // 悬停时线条加粗
+                width: 4,
               },
               areaStyle: {
-                opacity: 0.6, // 悬停时填充更密集
+                opacity: 0.6,
               },
             },
             data: [
@@ -108,12 +124,6 @@ export default {
           },
         ],
       };
-      this.chartInstance.setOption(option);
-    },
-    resizeChart() {
-      if (this.chartInstance) {
-        this.chartInstance.resize();
-      }
     },
   },
 };
@@ -122,7 +132,6 @@ export default {
 <style scoped>
 .chart-container {
   width: 100%;
-  height: 100%; /* ✅ 不再用 aspect-ratio 或 padding 技巧 */
-  overflow: hidden;
+  height: 100%;
 }
 </style>

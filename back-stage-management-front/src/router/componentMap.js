@@ -1,5 +1,5 @@
 export const componentMap = {
-  'Home': () => import('@/views/Home/Home.vue'),
+  // 'Home': () => import('@/views/Home/Home.vue'),
   // 'Goods': () => import('@/views/Goods/Goods.vue'),
   // 'AddGoods': () => import('@/views/Goods/AddGoods.vue'),
   // 'Advert': () => import('@/views/Advert/Advert.vue'),
@@ -8,7 +8,6 @@ export const componentMap = {
   // 'Category': () => import('@/views/Params/Category.vue'),
   // 'User': () => import('@/views/User/User.vue'),
   // 'Test': () => import('@/views/Test.vue'),
-  'NotFound': () => import('@/views/ErrorPages/NotFound.vue'),
   'Layout': () => import('@/views/Layout/Layout.vue'),
   // 概览
   'dashboard/workbench': () => import('@/views/Overview/Workbench.vue'),
@@ -18,4 +17,5 @@ export const componentMap = {
   'system/department': () => import('@/views/System/Department.vue'),
   'system/user': () => import('@/views/System/User.vue'),
   'system/permission': () => import('@/views/System/Permission.vue'),
+  'system/menu': () => import('@/views/System/MenuManagement.vue'),
 }

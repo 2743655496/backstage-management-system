@@ -11,6 +11,7 @@ import i18n from '@/lang/index'
 import { setupAuthGuard } from '@/router/permission'
 const menusList = store.getters['PermissionModule/menusList']
 if (menusList && menusList.length > 0) {
+  store.dispatch("PermissionModule/fetchPermissions")
   registerDynamicRoutes(menusList)
 }
 setupAuthGuard();

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import { componentMap } from './componentMap'
+import { checkAuth } from "@/utils/auth";
 import Login from '@/views/Login/MyLogin'
 
 Vue.use(VueRouter)
@@ -49,6 +49,10 @@ const baseRoutes = [
   {
     path: '/404',
     name: 'NotFound',
+    beforeEnter: (to, from, next) => {
+            checkAuth()
+            next()
+          },
     component: () => import('@/views/ErrorPages/NotFound.vue')
   },
   {
