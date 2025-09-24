@@ -6,8 +6,8 @@ const api = {
     slider_verify: "/api/user/slider_verify/", //滑块验证接口
     token_refresh: "/api/user/refresh/", //token刷新
     logout: "/api/user/logout/", //退出登录
-    get_permission: "/api/user/permission/", //退出登录
-    get_menu:"/api/user/menus/"
+    get_permission: "/api/user/permission/", //用户权限信息
+    get_menu:"/api/user/menus/", //菜单信息查询接口
 }
 
 export default api;

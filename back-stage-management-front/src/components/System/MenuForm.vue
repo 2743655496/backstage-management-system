@@ -11,7 +11,7 @@
 
     <el-form :model="form" :rules="rules" ref="form" label-width="100px" >
       <el-form-item label="上级菜单" prop="name1">
-        <tree-select v-model="singleValue" :data="treeData" />
+        <tree-select v-model="form.singleValue" :data="treeData" />
       </el-form-item>
       <el-form-item label="菜单名称" prop="name">
         <el-input v-model="form.name" />
@@ -55,36 +55,16 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    menus: {
+      type: Array,
+      default: () => [],
+    },
   },
   components: { TreeSelect },
   data() {
     return {
       treeData: [
-        {
-          id: 1,
-          label: "水果",
-          children: [
-            {
-              id: 11,
-              label: "苹果",
-              children: [
-                { id: 111, label: "红富士" },
-                { id: 112, label: "奶苹果" }
-              ]
-            },
-            { id: 12, label: "香蕉" }
-          ]
-        },
-        {
-          id: 2,
-          label: "蔬菜",
-          children: [
-            { id: 21, label: "西红柿" },
-            { id: 22, label: "黄瓜" }
-          ]
-        }
       ],
-      singleValue: null,
       localVisible: false,
       form: {
         name: "",
@@ -94,6 +74,7 @@ export default {
         sort: 0,
         visible: 1,
         status: 1,
+        singleValue: null,
       },
       rules: {
         name: [{ required: true, message: "请输入菜单名称", trigger: "blur" }],
@@ -130,18 +111,37 @@ export default {
             };
       },
     },
+    menus: {
+      immediate: true,
+      handler(val) {
+        this.treeData = this.transformMenusToTree(val);
+      },
+    },
   },
   methods: {
+    transformMenusToTree(data) {
+      return data.map(item => {
+        const newItem = {
+          ...item,
+          label: item.name,
+        };
+        if (item.children && item.children.length > 0) {
+          newItem.children = this.transformMenusToTree(item.children);
+        }
+        return newItem;
+      });
+    },
     handleClose() {
       this.$emit("update:visible", false);
     },
     submitForm() {
-      this.$refs.form.validate((valid) => {
-        if (!valid) return;
-        this.$message.success("表单验证通过（模拟保存）");
-        this.$emit("refresh");
-        this.handleClose();
-      });
+      console.log(this.form)
+      // this.$refs.form.validate((valid) => {
+      //   if (!valid) return;
+      //   this.$message.success("表单验证通过（模拟保存）");
+      //   this.$emit("refresh");
+      //   this.handleClose();
+      // });
     },
   },
 };

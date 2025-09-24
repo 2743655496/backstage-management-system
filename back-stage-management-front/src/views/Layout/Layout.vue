@@ -65,6 +65,9 @@ export default {
     // 数组形式 - 同名映射
     ...mapState("LockModule", ["isLocked", "LockPassword", "showSetPassword"]),
   },
+  created(){
+    
+  },
   mounted() {
     window.addEventListener("keydown", this.handleKeydown);
   },

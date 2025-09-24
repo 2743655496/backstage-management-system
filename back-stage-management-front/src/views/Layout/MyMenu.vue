@@ -39,7 +39,7 @@
 
       <el-submenu v-else :key="item.path" :index="item.path">
         <template slot="title">
-          <i :class="item.icon"></i>
+          <i :class="item.icon" v-if="item.icon"></i>
           <span slot="title">{{ item.name }}</span>
         </template>
         <el-menu-item-group>
@@ -49,7 +49,7 @@
             :index="child.path"
             @click="updateMenu(child.path)"
           >
-            <i :class="['menu-icon', child.icon]"></i>
+            <i :class="['menu-icon', child.icon]" v-if="child.icon"></i>
             <span slot="title">{{ child.name }}</span>
           </el-menu-item>
         </el-menu-item-group>

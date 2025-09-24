@@ -15,7 +15,7 @@
         clearable
         style="margin-bottom: 8px;"
       />
- 
+
       <!-- 树形结构 -->
       <el-tree
         ref="tree"
@@ -29,7 +29,7 @@
         @check="handleCheck"
         default-expand-all
       />
- 
+
       <!-- 输入框触发器 -->
       <el-input
         slot="reference"
@@ -41,14 +41,14 @@
     </el-popover>
   </div>
 </template>
- 
+
 <script>
 export default {
   name: "TreeSelect",
   props: {
-    value: [String, Number, Array], // 绑定值
-    data: { type: Array, required: true }, // 树数据
-    multiple: { type: Boolean, default: false }, // 是否多选
+    value: [String, Number, Array],
+    data: { type: Array, required: true },
+    multiple: { type: Boolean, default: false },
     placeholder: { type: String, default: "请选择" }
   },
   data() {
@@ -61,7 +61,7 @@ export default {
   },
   watch: {
     filterText(val) {
-      this.$refs.tree.filter(val);
+      this.$refs.tree?.filter(val);
     },
     value: {
       immediate: true,
@@ -71,27 +71,41 @@ export default {
           return;
         }
         if (this.multiple && Array.isArray(val)) {
-          const nodes = this.$refs.tree
-            ? this.$refs.tree.getCheckedNodes()
-            : [];
+          const nodes = this.$refs.tree?.getCheckedNodes() || [];
           this.selectedLabels = this.formatGroupedLabels(nodes);
         } else {
           const node = this.findNodeById(this.data, val);
           this.selectedLabels = node ? node.label : "";
         }
       }
+    },
+    visible(val) {
+      const popper = document.querySelector('.tree-select-popper');
+      if (val) {
+        // 弹窗打开，允许交互
+        popper?.removeAttribute('inert');
+      } else {
+        // 弹窗关闭前，移除焦点
+        this.$nextTick(() => {
+          document.activeElement?.blur();
+        });
+        // 延迟设置 inert，确保动画完成后 DOM 被隐藏
+        setTimeout(() => {
+          popper?.setAttribute('inert', '');
+        }, 300); // 与 Element UI 的 fade-in-linear 动画时长保持一致
+      }
     }
   },
   methods: {
     filterNode(value, data) {
       if (!value) return true;
-      return data.label.indexOf(value) !== -1;
+      return data.label.includes(value);
     },
     handleNodeClick(node) {
       if (!this.multiple) {
         this.selectedLabels = node.label;
         this.$emit("input", node.id);
-        this.visible = false; // 单选时选完收起
+        this.visible = false;
       }
     },
     handleCheck() {
@@ -101,14 +115,11 @@ export default {
         this.$emit("input", nodes.map(n => n.id));
       }
     },
-    // 格式化多选显示：按顶级父节点分组
     formatGroupedLabels(nodes) {
       const grouped = {};
       nodes.forEach(node => {
         const topParent = this.findTopParent(this.data, node.id);
-        if (topParent) {
-          // 跳过顶级父节点本身
-          if (node.id === topParent.id) return;
+        if (topParent && node.id !== topParent.id) {
           if (!grouped[topParent.label]) {
             grouped[topParent.label] = [];
           }
@@ -119,7 +130,6 @@ export default {
         .map(parent => `${parent}: ${grouped[parent].join(", ")}`)
         .join("； ");
     },
-    // 找到某个节点的顶级父节点
     findTopParent(list, id, parent = null) {
       for (let item of list) {
         if (item.id === id) return parent || item;
@@ -143,7 +153,7 @@ export default {
   }
 };
 </script>
- 
+
 <style scoped>
 .tree-select {
   width: 300px;

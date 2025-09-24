@@ -99,7 +99,7 @@ class LoginView(APIView):
                 # samesite='Lax',
                 samesite='Strict',
                 # samesite='None',
-                max_age=3600  # 1小时有效期
+                max_age=60  # 1小时有效期
             )
             response.set_cookie(
                 key='refresh_token',
@@ -109,7 +109,8 @@ class LoginView(APIView):
                 # samesite='Lax',
                 samesite='Strict',
                 # samesite='None',
-                max_age=7 * 24 * 3600 if remember else 24 * 3600
+                max_age=60  # 1小时有效期
+                # max_age=7 * 24 * 3600 if remember else 24 * 3600
             )
 
             return response
@@ -167,7 +168,7 @@ class TokenRefreshView(APIView):
         new_access_token = JWTUtils.create_access_token(user)
         response = Response({'code': 200, 'message': 'Token 已刷新'})
         response.set_cookie('access_token', new_access_token, httponly=True, secure=not settings.DEBUG,
-                            samesite='Strict', max_age=3600)
+                            samesite='Strict', max_age=60)
         return response
 
 

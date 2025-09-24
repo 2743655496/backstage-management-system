@@ -43,6 +43,7 @@
     <menu-form
       :visible.sync="formVisible"
       :menu="currentMenu"
+      :menus="menuTree"
       @refresh="fetchMenus"
     />
   </div>
