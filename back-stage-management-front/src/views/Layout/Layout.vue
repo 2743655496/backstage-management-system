@@ -66,15 +66,17 @@ export default {
     ...mapState("LockModule", ["isLocked", "LockPassword", "showSetPassword"]),
   },
   created(){
-    
+    this.startSessionPing();
   },
   mounted() {
     window.addEventListener("keydown", this.handleKeydown);
   },
   beforeDestroy() {
     window.removeEventListener("keydown", this.handleKeydown);
+    clearInterval(this.pingTimer);
   },
   methods: {
+    
     // 模块 actions
     ...mapActions("LockModule", [
       "lock",
@@ -82,6 +84,22 @@ export default {
       "SetLockPassword",
       "setShowSetPassword",
     ]),
+    startSessionPing() {
+    this.pingTimer = setInterval(() => {
+      this.$store.dispatch("SessionModule/pingSession").then(() => {
+        if (this.$store.getters["SessionModule/isExpiringSoon"]) {
+          this.$notify({
+          title: '警告',
+          message: '登录即将过期，请保存您的操作',
+          type: 'warning',
+          // duration: 0,
+          showClose: true
+        });
+
+        }
+      });
+    }, 5 * 60 * 1000); // 每5分钟轮询
+  },
     handleKeydown(e) {
       if (e.altKey && e.key.toLowerCase() === "l") {
         if (!this.isLocked) {

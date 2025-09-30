@@ -77,7 +77,7 @@
 
 <script>
 import MyPagination from "@/components/MyPagination.vue";
-import { getGoodsList, getSearchList } from "@/api/login.js";
+import { getGoodsList, getSearchList } from "@/api/modules/login.js";
 import GoodsDialog from './GoodsDialog.vue';
 export default {
   components: {

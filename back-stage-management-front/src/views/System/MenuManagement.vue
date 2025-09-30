@@ -2,7 +2,9 @@
   <div class="menu-page">
     <el-card class="card">
       <div class="header">
-        <el-button type="primary" icon="el-icon-plus" @click="openForm()">新增菜单</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="openForm()"
+          >新增菜单</el-button
+        >
       </div>
 
       <el-table
@@ -30,11 +32,30 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column
+          prop="visible"
+          label="是否显示"
+          width="100"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.visible === 1 ? 'success' : 'info'">
+              {{ scope.row.visible === 1 ? "显示" : "隐藏" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column label="操作" width="180" align="center">
           <template slot-scope="scope">
-            <el-button type="text" size="small" @click="addChild(scope.row)">新增下级</el-button>
-            <el-button type="text" size="small" @click="editRow(scope.row)">编辑</el-button>
-            <el-button type="text" size="small" @click="deleteRow(scope.row)">删除</el-button>
+            <el-button type="text" size="small" @click="addChild(scope.row)"
+              >新增下级</el-button
+            >
+            <el-button type="text" size="small" @click="editRow(scope.row)" 
+              style="color: #67C23A">编辑</el-button
+            >
+            <el-button type="text" size="small" @click="deleteRow(scope.row)"
+              style="color: red">删除</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -51,7 +72,7 @@
 
 <script>
 import MenuForm from "@/components/System/MenuForm.vue";
-import { getMenus } from "@/api/menu";
+import { getMenus,toDeleteMenu } from "@/api/modules/menu";
 
 export default {
   components: { MenuForm },
@@ -67,9 +88,11 @@ export default {
   },
   methods: {
     fetchMenus() {
-      getMenus().then((res) => {
-        this.menuTree = res.data.data;
-      });
+      getMenus()
+        .then((res) => {
+          this.menuTree = res.data.data;
+        })
+        .catch((err) => {});
     },
     openForm(row = null) {
       this.currentMenu = row ? { ...row } : null;
@@ -95,10 +118,22 @@ export default {
     deleteRow(row) {
       this.$confirm(`确定删除 ${row.name} 吗？`, "提示", {
         type: "warning",
-      }).then(() => {
-        this.$message.success("删除成功（模拟）");
-      });
+      })
+        .then(() => {
+          toDeleteMenu(row.id)
+            .then(() => {
+              this.$message.success("菜单删除成功");
+              this.fetchMenus(); // ✅ 删除后刷新菜单列表
+            })
+            .catch((err) => {
+              this.$message.error(err.response?.data?.error || "菜单删除失败");
+            });
+        })
+        .catch(() => {
+          // 用户取消删除
+        });
     },
+
     rowClassName({ row }) {
       return row.type === "按钮" ? "row-button" : "";
     },

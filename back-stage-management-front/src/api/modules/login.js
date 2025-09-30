@@ -1,8 +1,8 @@
 /**
  * 所有的请求函数
  */
-import ajax from "./ajax"
-import base from "./base"
+import ajax from "../ajax"
+import base from "../base"
 import qs from 'qs'; 
 
 /**

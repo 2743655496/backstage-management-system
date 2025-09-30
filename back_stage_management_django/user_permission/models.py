@@ -89,9 +89,9 @@ class UserRole(models.Model):
 
 class Menu(models.Model):
     parent_id = models.BigIntegerField(default=0, verbose_name='父菜单ID（0目录）')
-    name = models.CharField(max_length=50, verbose_name='菜单名称')
+    name = models.CharField(max_length=50, unique=True,verbose_name='菜单名称')
     icon = models.CharField(max_length=50, blank=True, null=True, verbose_name='菜单图标')
-    path = models.CharField(max_length=100, blank=True, null=True, verbose_name='路由路径')
+    path = models.CharField(max_length=100,unique=True, verbose_name='路由路径')
     component = models.CharField(max_length=100, blank=True, null=True, verbose_name='组件路径')
     sort = models.IntegerField(default=0, verbose_name='排序')
     visible = models.SmallIntegerField(default=1, verbose_name='是否显示')

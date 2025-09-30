@@ -1,4 +1,4 @@
-import { toGetPermission } from '@/api/login'
+import { toGetPermission } from '@/api/modules/login'
 import { registerDynamicRoutes } from '@/router/dynamicRoutes'
 
 

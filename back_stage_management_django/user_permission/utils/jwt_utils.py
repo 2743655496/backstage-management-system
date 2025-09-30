@@ -1,33 +1,36 @@
 import jwt
-import datetime
+from datetime import timedelta
 from django.conf import settings
-from user_permission.models import User  # 你的自定义用户模型
 from django.utils import timezone
+from user_permission.models import User
 
 class JWTUtils:
-    # 密钥，应该放在 settings 中
     SECRET_KEY = getattr(settings, 'JWT_SECRET_KEY', 'your-secret-key-change-in-production')
     ALGORITHM = 'HS256'
 
     @classmethod
-    def create_access_token(cls, user):
-        """创建访问令牌"""
+    def create_access_token(cls, user ,hours_time):
+        """创建访问令牌（1小时有效）"""
+        now = timezone.now()
         payload = {
             'user_id': user.id,
             'username': user.username,
-            'exp': timezone.now() + datetime.timedelta(hours=1),  # 1小时过期
-            'iat': timezone.now(),
+            'token_type': 'access',
+            'iat': int(now.timestamp()),
+            'exp': int((now + timedelta(hours=hours_time)).timestamp())
         }
         return jwt.encode(payload, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
 
     @classmethod
-    def create_refresh_token(cls, user, day_time ):
-        """创建刷新令牌"""
+    def create_refresh_token(cls, user, day_time):
+        """创建刷新令牌（day_time天有效）"""
+        now = timezone.now()
         payload = {
             'user_id': user.id,
             'token_type': 'refresh',
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=day_time),  # 7天过期
-            'iat': datetime.datetime.utcnow(),
+            'iat': int(now.timestamp()),
+            'exp': int((now + timedelta(days=day_time)).timestamp())
+            # 'exp': int((now + timedelta(seconds=600)).timestamp())
         }
         return jwt.encode(payload, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
 

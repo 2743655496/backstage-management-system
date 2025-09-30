@@ -1,16 +1,18 @@
 # middleware.py
 import re
+from django.utils import timezone
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from .utils.jwt_utils import JWTUtils  # 你的 JWT 工具类
 from utils.redis_client import RedisClient
 
+
 class JWTAuthMiddleware(MiddlewareMixin):
     # 定义白名单路径（不需要认证的接口）
     WHITELIST_PATHS = [
-        r'^/api/user/login/$',  # 登录接口
-        r'^/api/user/slider_verify/$',  # 滑块验证接口
-        r'^/api/user/refresh/$',  # token刷新接口
+        r'^/api/system/login/$',  # 登录接口
+        r'^/api/system/slider_verify/$',  # 滑块验证接口
+        r'^/api/system/refresh/$',  # token刷新接口
         # r'^/admin/',  # Django 后台管理
         # r'^/health/$',  # 健康检查端点
         # 添加其他需要排除的路径...
@@ -37,6 +39,11 @@ class JWTAuthMiddleware(MiddlewareMixin):
 
         # 使用 HttpOnly Cookie
         token = request.COOKIES.get('access_token')
+        if not token:
+            return JsonResponse({
+                'error': '未提供令牌',
+                'detail': '请登录后访问'
+            }, status=401)
         # 黑名单校验
         if RedisClient.is_blacklisted(token):
             return JsonResponse({
@@ -44,18 +51,27 @@ class JWTAuthMiddleware(MiddlewareMixin):
                 'detail': '该令牌已被撤销或登出'
             }, status=401)
         try:
+            # ✅ 解码 token 获取 payload
+            payload = JWTUtils.verify_token(token)
             # 验证 Token 并获取用户
             user = JWTUtils.get_user_from_token(token)
-
-            if user:
-                # 将用户对象附加到请求中
-                request.my_user = user
-                return None  # 继续处理请求
-            else:
+            if not user:
                 return JsonResponse({
                     'error': '认证失败',
                     'detail': '用户不存在或令牌无效'
                 }, status=401)
+
+            # ✅ 注入用户对象
+            request.my_user = user
+
+            # ✅ 注入 access_token 剩余时间
+            # ✅ 使用 Django 的 timezone.now() 计算剩余时间
+            exp_timestamp = payload.get('exp')
+            if exp_timestamp:
+                now = timezone.now().timestamp()
+                request.access_token_expires_in = int(exp_timestamp - now)
+
+            return None
         except Exception as e:
             return JsonResponse({
                 'error': '认证错误',

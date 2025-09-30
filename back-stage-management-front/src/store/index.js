@@ -7,7 +7,7 @@ import LockModule from './modules/Lock'
 import PermissionModule from './modules/PermissionModule'
 import chartRenderKey from './modules/chartRenderKey';
 import createPersistedState from 'vuex-persistedstate'
-
+import SessionModule from './modules/SessionModule';
 
 Vue.use(Vuex)
 
@@ -26,7 +26,8 @@ export default new Vuex.Store({
     LanguageModule,
     LockModule,
     PermissionModule,
-    chartRenderKey
+    chartRenderKey,
+    SessionModule,
   },
   plugins: [
     createPersistedState({

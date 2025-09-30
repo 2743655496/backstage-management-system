@@ -6,6 +6,7 @@
       trigger="click"
       v-model="visible"
       popper-class="tree-select-popper"
+      :disabled="disabled"
     >
       <!-- 搜索框 -->
       <el-input
@@ -37,6 +38,7 @@
         :placeholder="placeholder"
         readonly
         suffix-icon="el-icon-caret-bottom"
+        :disabled="disabled"
       />
     </el-popover>
   </div>
@@ -46,11 +48,13 @@
 export default {
   name: "TreeSelect",
   props: {
-    value: [String, Number, Array],
-    data: { type: Array, required: true },
-    multiple: { type: Boolean, default: false },
-    placeholder: { type: String, default: "请选择" }
-  },
+  value: [String, Number, Array],
+  data: { type: Array, required: true },
+  multiple: { type: Boolean, default: false },
+  placeholder: { type: String, default: "请选择" },
+  disabled: { type: Boolean, default: false }
+},
+
   data() {
     return {
       visible: false,

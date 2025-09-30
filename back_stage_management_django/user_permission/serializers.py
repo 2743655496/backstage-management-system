@@ -22,9 +22,37 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PermissionSerializer(serializers.ModelSerializer):
+    creator = serializers.SerializerMethodField()
+
     class Meta:
         model = Permission
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'code',
+            'description',
+            'type',
+            'menu_id',
+            'parent_id',
+            'api_method',
+            'api_path',
+            'status',
+            'creator_id',
+            'creator',
+            'create_time',
+            'update_time',
+        ]
+
+    def get_creator(self, obj):
+        try:
+            user = User.objects.get(id=obj.creator_id)
+            return {
+                "id": user.id,
+                "username": user.username,
+                "real_name": user.real_name,
+            }
+        except User.DoesNotExist:
+            return None
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -51,7 +79,7 @@ class UserLoginSerializer(serializers.Serializer):
             else:
                 RedisClient.incr(cache_key)
                 RedisClient.expire(cache_key, 300)
-            raise serializers.ValidationError('用户不存在')
+            raise serializers.ValidationError('用户名或密码错误')
 
         # 检查用户状态
         if user.status != 1:
@@ -59,14 +87,13 @@ class UserLoginSerializer(serializers.Serializer):
 
         # 简单的密码验证（根据你的实际存储方式调整）
         is_valid = verify_secure_password(password, user.password)  # True
-        if not is_valid:  # 或者你的加密方式
-            # 用户不存在
+        if not is_valid:
             if not RedisClient.get(cache_key):
                 RedisClient.set(cache_key, 1, ex=300)
             else:
                 RedisClient.incr(cache_key)
                 RedisClient.expire(cache_key, 300)
-            raise serializers.ValidationError('密码错误')
+            raise serializers.ValidationError('用户名或密码错误')
 
         attrs['user'] = user
         return attrs

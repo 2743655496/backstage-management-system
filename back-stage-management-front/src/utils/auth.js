@@ -1,4 +1,4 @@
-import { checkAuthStatus } from '@/api/login';
+import { checkAuthStatus } from '@/api/modules/login';
 import store from '@/store'
 
 export async function checkAuth() {

@@ -120,7 +120,8 @@
 
 <script>
 import SliderVerify from "@/components/Login/SliderVerify.vue";
-import { toslider_verify, toLogin } from "@/api/login.js";
+import { toslider_verify, toLogin } from "@/api/modules/login.js";
+import { resetLogoutFlag } from "@/api/ajax";
 export default {
   components: {
     SliderVerify,
@@ -167,49 +168,28 @@ export default {
     handleLogin() {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
-          if (valid) {
-            // 登录逻辑
-            if (!this.isPassed || !this.form.sliderToken) {
-              this.$message.error("请先完成滑块验证");
-              return;
-            }
-            const loginData = {
-              username: this.form.username,
-              password: this.form.password,
-              slider_token: this.form.sliderToken,
-              remember: this.form.remember,
-            };
-            toLogin(loginData)
-              .then((res) => {
-                this.$message.success("登录成功");
-                // 可选：保存用户信息到状态管理或 localStorage
-                const user = res.data.user;
-                this.$store.commit("LoginModule/setUserInfo", user); // 如果你使用 Vuex
-                // ✅ 加载权限并注册动态路由
-                // 加载权限并注册动态路由
-                this.$store
-                  .dispatch("PermissionModule/fetchPermissions")
-                  .then(() => {
-                    // ✅ 等待权限加载完成后再跳转
-                    setTimeout(() => {
-                      this.$router.push("/");
-                    }, 100); // 延迟 100ms，可根据实际情况调整
-                  });
-              })
-              .catch((err) => {
-                const errorMsg =
-                  err.response?.data?.error ||
-                  err.response?.data?.username?.[0] ||
-                  err.response?.data?.password?.[0] ||
-                  "登录失败，请检查用户名和密码";
-                this.$message.error(errorMsg);
-              });
-          } else {
-            this.$message.error("请填写完整信息");
+          if (!this.isPassed || !this.form.sliderToken) {
+            this.$message.error("请先完成滑块验证");
+            return;
           }
 
-          this.$refs.slider.resetSlider(); // 👈 还原滑块状态
-          this.form.sliderToken = "";
+          const loginData = {
+            username: this.form.username,
+            password: this.form.password,
+            slider_token: this.form.sliderToken,
+            remember: this.form.remember,
+          };
+
+          this.$store
+            .dispatch("LoginModule/login", {
+              loginData,
+              router: this.$router,
+              message: this.$message,
+            })
+            .catch(() => {
+              this.$refs.slider?.resetSlider();
+              this.form.sliderToken = "";
+            });
         }
       });
     },
@@ -229,7 +209,9 @@ export default {
           }
         })
         .catch((err) => {
-          this.$message.error(err.response?.data?.error || "滑块验证异常");
+          if (!err.__handled) {
+            this.$message.error(err.response?.data?.error || "滑块验证异常");
+          }
           this.$refs.slider.resetSlider(); // 👈 还原滑块状态
           this.isPassed = false;
         });
