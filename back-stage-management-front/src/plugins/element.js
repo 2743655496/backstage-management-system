@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {MessageBox,Popover,Tree,Option,Select,Switch, Radio, RadioGroup, Drawer, Card,Message,Button, Menu, Submenu, MenuItem, MenuItemGroup, Table, TableColumn, Input, InputNumber, Pagination, Breadcrumb, BreadcrumbItem, Form, FormItem, DatePicker, TimeSelect, TimePicker, Col, Dialog, Dropdown, DropdownMenu, DropdownItem, Tooltip, Container, Header, Aside, Main, Footer, Row, Tag, Checkbox, Link, Divider,Notification } from 'element-ui'
+import {Avatar,Upload,MessageBox,Popover,Tree,Option,Select,Switch, Radio, RadioGroup, Drawer, Card,Message,Button, Menu, Submenu, MenuItem, MenuItemGroup, Table, TableColumn, Input, InputNumber, Pagination, Breadcrumb, BreadcrumbItem, Form, FormItem, DatePicker, TimeSelect, TimePicker, Col, Dialog, Dropdown, DropdownMenu, DropdownItem, Tooltip, Container, Header, Aside, Main, Footer, Row, Tag, Checkbox, Link, Divider,Notification } from 'element-ui'
 
 Vue.use(Button)
 Vue.use(Menu);
@@ -43,6 +43,8 @@ Vue.use(Select)
 Vue.use(Option)
 Vue.use(Tree)
 Vue.use(Popover)
+Vue.use(Upload)
+Vue.use(Avatar);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$notify = Notification;

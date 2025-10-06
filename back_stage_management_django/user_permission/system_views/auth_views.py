@@ -2,7 +2,7 @@ import logging
 import uuid
 import jwt
 from user_permission.models import User, UserRole, RolePermission, Permission, Menu
-from user_permission.serializers import UserLoginSerializer
+from user_permission.serializers.auth_serializers import UserLoginSerializer
 from user_permission.utils.jwt_utils import JWTUtils
 from django.utils import timezone
 from rest_framework.views import APIView

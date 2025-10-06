@@ -11,11 +11,11 @@ urlpatterns = [
 ]
 
 # from django.urls import path
-# from . import system_views
+# from . import system_views2
 #
 # # 指定应用命名空间
 # app_name='goods'
 #
 # urlpatterns = [
-#     path('good/',system_views.book_list)
+#     path('good/',system_views2.book_list)
 # ]

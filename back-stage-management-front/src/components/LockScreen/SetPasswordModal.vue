@@ -4,7 +4,7 @@
       <!-- 右上角关闭按钮 -->
       <span class="close-btn" @click="close">×</span>
 
-      <img :src="require('@/assets/horse.png')" class="avatar" />
+      <img :src="require('@/assets/images/horse.png')" class="avatar" />
       <h3>设定锁屏密码</h3>
       <input type="password" v-model="pwd" placeholder="请输入锁屏密码" />
       <p>

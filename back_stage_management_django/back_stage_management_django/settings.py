@@ -280,3 +280,6 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers)
+
+# nginx中图片应存放位置
+MEDIA_ROOT = "E:\\web_work\\back-stage-management\\back-stage-management-front\\public"

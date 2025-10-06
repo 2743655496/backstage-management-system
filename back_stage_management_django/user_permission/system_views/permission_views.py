@@ -1,12 +1,11 @@
 from user_permission.models import Department, Role, User, UserRole, RolePermission, Permission, Menu
-from user_permission.serializers import PermissionSerializer
+from user_permission.serializers.permission_serializers import PermissionSerializer
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-
-
+from utils.serializer_errors import extract_error_message
+from utils.decorators import atomic_view
 
 class PermissionListView(APIView):
     def get(self, request):
@@ -39,36 +38,78 @@ class PermissionListView(APIView):
         sort_children(tree)
         return tree
 
-class PermissionDetailView(APIView):
-    def get(self, request, pk):
-        try:
-            permission = Permission.objects.get(pk=pk, is_deleted=0)
-        except Permission.DoesNotExist:
-            return Response({"error": "权限不存在"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = PermissionSerializer(permission)
-        return Response(serializer.data)
 
 class PermissionCreateView(APIView):
+
+    @atomic_view
     def post(self, request):
         serializer = PermissionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(creator_id=request.user.id if request.user else None)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            message = extract_error_message(serializer.errors)
+            return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ 保存权限
+        permission = serializer.save(creator_id=request.my_user.id if request.my_user else None)
+
+        # ✅ 创建角色权限关联（避免重复）
+        RolePermission.objects.get_or_create(
+            role_id=1,
+            permission_id=permission.id,
+            defaults={"creator_id": request.my_user.id if request.my_user else None}
+        )
+
+        return Response({
+            "message": "权限创建成功，已自动分配给管理员角色",
+            "permission_id": permission.id,
+            "code": permission.code
+        }, status=status.HTTP_201_CREATED)
+
 
 class PermissionUpdateView(APIView):
-    def put(self, request, pk):
+    @atomic_view
+    def post(self, request, pk):
         try:
-            permission = Permission.objects.get(pk=pk, is_deleted=0)
+            permission = Permission.objects.get(id=pk, is_deleted=0)
         except Permission.DoesNotExist:
             return Response({"error": "权限不存在"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = PermissionSerializer(permission, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save(update_time=timezone.now())
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+
+        # ✅ 权限标识唯一性校验（排除当前记录）
+        new_code = data.get("code")
+        if new_code and Permission.objects.filter(code=new_code, is_deleted=0).exclude(id=pk).exists():
+            return Response({"message": "权限标识已存在"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ 通用字段更新
+        for field in ["name", "code", "description", "type", "parent_id", "status"]:
+            if field in data:
+                setattr(permission, field, data[field])
+
+        # ✅ 菜单权限字段更新
+        if data.get("type") == 1:
+            permission.menu_id = data.get("menu_id")
+
+        # ✅ 接口权限字段更新
+        if data.get("type") == 2:
+            permission.api_method = data.get("api_method")
+            permission.api_path = data.get("api_path")
+
+        # ✅ 清除无关字段（防止残留）
+        if data.get("type") != 1:
+            permission.menu_id = None
+        if data.get("type") != 2:
+            permission.api_method = None
+            permission.api_path = None
+
+        permission.update_time = timezone.now()
+        permission.save()
+
+        return Response({"message": "权限更新成功"}, status=status.HTTP_200_OK)
+
+
 
 class PermissionDeleteView(APIView):
+    @atomic_view
     def post(self, request, pk):
         try:
             root = Permission.objects.get(pk=pk, is_deleted=0)

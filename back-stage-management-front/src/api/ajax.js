@@ -39,7 +39,6 @@ service.interceptors.response.use(
         try {
           const url = new URL(base.token_refresh, base.baseUrl).toString();
           const res = await axios.post(url, {}, { withCredentials: true });
-
           if (res.data.code === 200) {
             // ✅ 刷新成功：重放挂起请求
             requestsQueue.forEach(cb => cb());
@@ -67,20 +66,22 @@ service.interceptors.response.use(
 
     // ⚠️ 400 参数错误
     if (response.status === 400) {
-      // ✅ 登录接口
-      // if (config.url.includes(base.login)) {
-      //   return Promise.reject(error); // 直接返回
-      // }
-      console.log(response)
       const msg = response?.data?.message || '请求参数错误，请检查';
       Message.error(msg);
       error.__handled = true; // ✅ 标记已处理
     }
 
+    // 🚫 404 资源未找到
+    if (response.status === 404) {
+      const msg = response?.data?.message || '请求的资源不存在';
+      Message.error(msg);
+      error.__handled = true; // ✅ 标记已处理
+    }
 
     // 🔥 500 服务器错误
     if (response.status === 500) {
-      Message.error('服务器内部错误，请稍后再试');
+      const msg = response?.data?.message || '服务器内部错误，请稍后再试';
+      Message.error(msg);
       error.__handled = true; // ✅ 标记已处理
     }
 
@@ -91,7 +92,7 @@ service.interceptors.response.use(
     }
 
     // 📦 其他错误（排除 401，避免重复提示）
-    if (![400, 401, 500].includes(response.status)) {
+    if (![400, 401, 500, 404].includes(response.status)) {
       const msg = response?.data?.message || '请求失败，请稍后再试';
       Message.error(msg);
       error.__handled = true; // ✅ 标记已处理
@@ -110,7 +111,6 @@ function clearRequestQueue() {
 function handleLogout() {
   if (hasLoggedOut) return;
   hasLoggedOut = true;
-
   store.commit('LoginModule/clearUser');
   store.dispatch('PermissionModule/clearPermissions');
   store.dispatch('MenuStateModule/clearAllMenus');

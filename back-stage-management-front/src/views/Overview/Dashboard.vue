@@ -153,7 +153,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 20px;
   background: #f5f7fa;
   font-family: "Helvetica Neue", sans-serif;
   overflow: hidden;

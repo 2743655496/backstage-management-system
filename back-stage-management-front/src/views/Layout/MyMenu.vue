@@ -10,7 +10,7 @@
       >
       <el-menu-item disabled>
         <div class="logo">
-          <img src="@/assets/horse.png" />
+          <img src="@/assets/images/horse.png" />
         </div>
         <span slot="title">后台管理系统</span>
       </el-menu-item>

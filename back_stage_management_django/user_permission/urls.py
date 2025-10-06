@@ -1,30 +1,23 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import *
-
+# 导入各个模块的路由
+from user_permission.my_urls.auth_urls import auth_urlpatterns
+from user_permission.my_urls.menu_urls import menu_urlpatterns
+from user_permission.my_urls.permission_urls import permission_urlpatterns
+from user_permission.my_urls.department_urls import department_urlpatterns
+from user_permission.my_urls.role_urls import role_urlpatterns
+from user_permission.my_urls.user_urls import user_urlpatterns
 
 router = DefaultRouter()
 
 urlpatterns = [
     path('', include(router.urls)),
-    # 用户授权
-    path('slider_verify/', SliderVerifyView.as_view()),
-    path('login/', LoginView.as_view(), name='login'),
-    path('status/', AuthStatusView.as_view(), name='auth-status'),
-    path('refresh/', TokenRefreshView.as_view(), name='refresh-token'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('userinfo/', UserProfileView.as_view(), name='user-profile'),
-    path('permission/', UserPermissionView.as_view(), name='user-permission'),
-    #菜单管理
-    path('menus/', MenuListView.as_view()),
-    path('menus/create/', MenuCreateView.as_view()),
-    path('menus/update/<int:menu_id>/', MenuUpdateView.as_view()),
-    path('menus/delete/<int:menu_id>/', MenuDeleteView.as_view()),
-    #权限管理
-    path('permissions/', PermissionListView.as_view()),
-    path('permissions/<int:pk>/', PermissionDetailView.as_view()),
-    path('permissions/create/', PermissionCreateView.as_view()),
-    path('permissions/update/<int:pk>/', PermissionUpdateView.as_view()),
-    path('permissions/delete/<int:pk>/', PermissionDeleteView.as_view()),
+    # 认证授权模块
+    path('auth/', include(auth_urlpatterns)),
+    # 系统管理模块
+    path('menus/', include(menu_urlpatterns)),
+    path('permissions/', include(permission_urlpatterns)),
+    path('departments/', include(department_urlpatterns)),
+    path('roles/', include(role_urlpatterns)),
+    path('users/', include(user_urlpatterns)),
 ]
-

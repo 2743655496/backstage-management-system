@@ -10,9 +10,9 @@ from utils.redis_client import RedisClient
 class JWTAuthMiddleware(MiddlewareMixin):
     # 定义白名单路径（不需要认证的接口）
     WHITELIST_PATHS = [
-        r'^/api/system/login/$',  # 登录接口
-        r'^/api/system/slider_verify/$',  # 滑块验证接口
-        r'^/api/system/refresh/$',  # token刷新接口
+        r'^/api/system/auth/login/$',  # 登录接口
+        r'^/api/system/auth/slider_verify/$',  # 滑块验证接口
+        r'^/api/system/auth/refresh/$',  # token刷新接口
         # r'^/admin/',  # Django 后台管理
         # r'^/health/$',  # 健康检查端点
         # 添加其他需要排除的路径...

@@ -240,7 +240,7 @@ export default {
     flex-basis: auto;
     overflow: auto;
     box-sizing: border-box;
-    padding: 0px;
+    padding: 20px;
     margin: 22px 0px 0px 0px; /* 上右下左 */
   }
   .el-main::-webkit-scrollbar {

@@ -5,6 +5,8 @@ def extract_error_message(errors):
     if isinstance(errors, dict):
         for field, messages in errors.items():
             if isinstance(messages, list) and messages:
+                if "This field may not be blank" in messages[0]:
+                    return f"{field}:{messages[0]}"
                 return f"{messages[0]}"
             elif isinstance(messages, dict):
                 return extract_error_message(messages)

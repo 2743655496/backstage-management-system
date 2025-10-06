@@ -1,9 +1,9 @@
 /**
  * 所有的请求函数
  */
-import ajax from "../ajax"
-import base from "../base"
-import qs from 'qs'; 
+import ajax from "@/api/ajax"
+import base from "@/api/base"
+
 
 /**
  * 登录

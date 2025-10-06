@@ -23,8 +23,6 @@ if (savedLang === 'iconfont icon-yingwen') {
   i18n.locale = 'zh'
 }
 
-Vue.config.productionTip = false
-
 
 new Vue({
   router,

@@ -42,7 +42,7 @@ import SetPasswordModal from "@/components/LockScreen/SetPasswordModal.vue";
 import LockScreen from "@/components/LockScreen/LockScreen.vue";
 import UnlockPage from "@/components/LockScreen/UnlockPage.vue";
 import { mapState, mapActions } from "vuex";
-import avatar from "@/assets/horse.png";
+import avatar from "@/assets/images/horse.png";
 import Content from "./MyContent.vue";
 import MyMenu from "./MyMenu.vue";
 export default {
@@ -135,7 +135,6 @@ export default {
 <style lang="less" scoped>
 .layout {
   position: relative;
-
   height: 100vh;
   overflow: hidden;
   background-color: #fff;

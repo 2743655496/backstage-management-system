@@ -4,7 +4,7 @@
       <!-- 图标按钮 -->
       <button class="circle-btn" @click.stop="handleIconClick">
         <img
-          :src="user.avatar ? user.avatar : require('@/assets/horse.png')"
+          :src="user.avatar ? user.avatar : require('@/assets/images/horse.png')"
           alt="用户头像"
         />
       </button>
@@ -14,7 +14,7 @@
         <div v-if="isOpen" class="user-dropdown">
           <div class="profile-header">
             <img
-              :src="user.avatar ? user.avatar : require('@/assets/horse.png')"
+              :src="user.avatar ? user.avatar : require('@/assets/images/horse.png')"
               alt="avatar"
               class="avatar"
             />

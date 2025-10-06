@@ -74,7 +74,7 @@
         "
       >
         <img
-          src="@/assets/horse.png"
+          src="@/assets/images/horse.png"
           style="width: 32px; height: 32px; object-fit: cover"
         />
       </div>

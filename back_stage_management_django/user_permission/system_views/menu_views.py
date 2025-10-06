@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from utils.decorators import atomic_view
 
 class MenuListView(APIView):
     def get(self, request):
@@ -32,16 +32,16 @@ class MenuListView(APIView):
 
 
 class MenuCreateView(APIView):
+    @atomic_view
     def post(self, request):
         data = request.data
-        # ✅ 唯一性校验：菜单名称
         if Menu.objects.filter(name=data["name"], is_deleted=0).exists():
             return Response({"message": "菜单名称已存在"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ 唯一性校验：路由路径
         path = data.get("path")
         if Menu.objects.filter(path=path, is_deleted=0).exists():
             return Response({"message": "路由路径已存在"}, status=status.HTTP_400_BAD_REQUEST)
+
         menu = Menu.objects.create(
             parent_id=data.get("parent_id", 0),
             name=data["name"],
@@ -52,34 +52,29 @@ class MenuCreateView(APIView):
             status=data.get("status", 1),
             creator_id=request.my_user.id
         )
-        auto_permission = data.get("auto_permission")
-        if auto_permission:
-            # 自动生成权限标识（可根据路径或菜单名生成）
+
+        if data.get("auto_permission"):
             permission_code = f"menu:{menu.path.strip('/')}" if menu.path else f"menu:{menu.id}"
             permission_name = f"{menu.name}-页面权限"
             description = f"{menu.name}访问权限"
             permission_parent_id = 0
             if menu.parent_id != 0:
-                # 查询父菜单对应的权限（菜单权限类型）
                 parent_permission = Permission.objects.filter(
-                    menu_id=menu.parent_id,
-                    type=1,
-                    is_deleted=0
+                    menu_id=menu.parent_id, type=1, is_deleted=0
                 ).first()
                 permission_parent_id = parent_permission.id if parent_permission else 0
-            # 创建权限记录
+
             permission = Permission.objects.create(
                 name=permission_name,
                 code=permission_code,
                 description=description,
-                type=1,  # 菜单权限
+                type=1,
                 menu_id=menu.id,
                 parent_id=permission_parent_id,
                 status=1,
                 creator_id=request.my_user.id
             )
 
-            # 分配给超级管理员角色（假设角色ID为1）
             RolePermission.objects.get_or_create(
                 role_id=1,
                 permission_id=permission.id,
@@ -90,6 +85,7 @@ class MenuCreateView(APIView):
 
 
 class MenuUpdateView(APIView):
+    @atomic_view
     def post(self, request, menu_id):
         data = request.data
         try:
@@ -115,6 +111,7 @@ class MenuUpdateView(APIView):
 
 
 class MenuDeleteView(APIView):
+    @atomic_view
     def post(self, request, menu_id):
         try:
             root_menu = Menu.objects.get(id=menu_id, is_deleted=0)

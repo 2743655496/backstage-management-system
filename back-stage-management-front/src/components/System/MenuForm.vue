@@ -111,7 +111,7 @@
 <script>
 import TreeSelect from "@/components/TreeSelect.vue";
 import icons from "@/assets/icons.js";
-import { toAddMenu, toUpdateMenu } from "@/api/modules/menu";
+import { toAddMenu, toUpdateMenu } from "@/api/modules/System/menu";
 
 export default {
   name: "MenuForm",
@@ -294,7 +294,7 @@ export default {
             .catch((err) => {
               if (!err.__handled) {
                 this.$message.error(
-                  err.response?.data?.error || "菜单修改失败"
+                   "菜单修改失败"
                 );
               }
             });
@@ -312,7 +312,7 @@ export default {
             .catch((err) => {
               if (!err.__handled) {
                 this.$message.error(
-                  err.response?.data?.error || "菜单添加失败"
+                  "添加菜单失败"
                 );
               }
             });

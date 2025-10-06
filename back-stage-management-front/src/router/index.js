@@ -49,10 +49,7 @@ const baseRoutes = [
   {
     path: '/404',
     name: 'NotFound',
-    beforeEnter: (to, from, next) => {
-            checkAuth()
-            next()
-          },
+    meta: { requiresAuth: true },
     component: () => import('@/views/ErrorPages/NotFound.vue')
   },
   {

@@ -1,5 +1,5 @@
-import ajax from "../ajax"
-import base from "../base"
+import ajax from "@/api/ajax"
+import base from "@/api/base"
 
 export const getMenus = () => {
   return ajax.get(base.get_menu);
