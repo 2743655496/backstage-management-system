@@ -110,10 +110,17 @@ export default {
       immediate: true,
       handler(val) {
         if (val) {
+          // ✅ 打开弹窗后清除表单验证状态
+          this.$nextTick(() => {
+            if (this.$refs.formRef) {
+              this.$refs.formRef.clearValidate();
+            }
+          });
           this.loadData();
         } else {
-          // 关闭时重置数据
-          this.resetForm();
+          if(this.form.id){
+            this.resetForm();
+          }
         }
       },
     },
@@ -246,7 +253,12 @@ export default {
 
     resetForm() {
       if (this.$refs.formRef) {
+        // ✅ 先重置表单数据，再清除验证状态
         this.$refs.formRef.resetFields();
+        // ✅ 额外调用 clearValidate 确保验证状态完全清除
+        this.$nextTick(() => {
+          this.$refs.formRef.clearValidate();
+        });
       }
 
       this.form = {
@@ -301,9 +313,14 @@ export default {
         this.$emit("refresh");
         this.handleClose();
       } catch (error) {
-        console.error("提交失败:", error);
-        const msg = error.response?.data?.error || error.message || "操作失败";
-        this.$message.error(msg);
+        if (!error.__handled) {
+          const isEdit = !!this.form.id;
+          const msg =
+            error.response?.data?.error || error.message || isEdit
+              ? "角色修改失败"
+              : "角色添加失败";
+          this.$message.error(msg);
+        }
       } finally {
         this.loading = false;
       }

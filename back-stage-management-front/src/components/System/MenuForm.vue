@@ -95,7 +95,11 @@
       </el-form-item>
 
       <!-- ✅ 新增：是否自动添加权限 -->
-      <el-form-item prop="auto_permission" label-width="30px">
+      <el-form-item
+        prop="auto_permission"
+        label-width="30px"
+        v-show="menu && menu.id ? false : true"
+      >
         <el-checkbox v-model="form.auto_permission">自动添加权限</el-checkbox>
       </el-form-item>
     </el-form>
@@ -217,6 +221,14 @@ export default {
   watch: {
     visible(val) {
       this.localVisible = val;
+      if (val) {
+        // ✅ 打开弹窗后清除表单验证状态
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate();
+          }
+        });
+      }
     },
     menu: {
       immediate: true,
@@ -234,6 +246,13 @@ export default {
               parent_id: 0,
               auto_permission: true, // ✅ 默认值
             };
+        
+        // ✅ 当菜单数据变化时也清除验证状态
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate();
+          }
+        });
       },
     },
     menus: {
@@ -293,9 +312,7 @@ export default {
             })
             .catch((err) => {
               if (!err.__handled) {
-                this.$message.error(
-                   "菜单修改失败"
-                );
+                this.$message.error("菜单修改失败");
               }
             });
         } else {
@@ -311,16 +328,22 @@ export default {
             })
             .catch((err) => {
               if (!err.__handled) {
-                this.$message.error(
-                  "添加菜单失败"
-                );
+                this.$message.error("添加菜单失败");
               }
             });
         }
       });
     },
     resetForm() {
-      if (this.$refs.form) this.$refs.form.resetFields();
+      if (this.$refs.form) {
+        // ✅ 先重置表单数据，再清除验证状态
+        this.$refs.form.resetFields();
+        // ✅ 额外调用 clearValidate 确保验证状态完全清除
+        this.$nextTick(() => {
+          this.$refs.form.clearValidate();
+        });
+      }
+      
       this.form =
         this.menu && this.menu.id
           ? {
@@ -342,7 +365,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .drawer-footer {

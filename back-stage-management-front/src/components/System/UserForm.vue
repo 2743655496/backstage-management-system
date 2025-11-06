@@ -66,12 +66,14 @@
 
       <!-- 使用 TreeSelect 组件 -->
       <el-form-item label="所属部门" prop="department_id">
-        <TreeSelect
-          v-model="form.department_id"
-          :data="departmentTree"
-          placeholder="请选择部门"
-          :multiple="false"
-        />
+        <div class="permission-box">
+          <TreeSelect
+            v-model="form.department_id"
+            :data="departmentTree"
+            placeholder="请选择部门"
+            :multiple="false"
+          />
+        </div>
       </el-form-item>
 
       <el-form-item label="状态" prop="status">
@@ -126,13 +128,52 @@ import TreeSelect from "@/components/TreeSelect.vue";
 export default {
   name: "UserForm",
   components: {
-    TreeSelect
+    TreeSelect,
   },
   props: {
     visible: Boolean,
     userId: { type: [Number, String], default: null },
   },
   data() {
+    // 密码验证函数
+    const validatePassword = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error("请输入密码"));
+        return;
+      }
+
+      // 检查首字符是否为字母
+      if (!/^[a-zA-Z]/.test(value)) {
+        callback(new Error("密码首字符必须为字母"));
+        return;
+      }
+
+      // 检查是否包含数字
+      if (!/\d/.test(value)) {
+        callback(new Error("密码必须包含至少一个数字"));
+        return;
+      }
+
+      // 检查是否包含字母
+      if (!/[a-zA-Z]/.test(value)) {
+        callback(new Error("密码必须包含至少一个字母"));
+        return;
+      }
+
+      // 检查是否包含特殊字符
+      if (!/[!@#$%^&*]/.test(value)) {
+        callback(new Error("密码必须包含至少一个特殊字符 (!@#$%^&*)"));
+        return;
+      }
+
+      // 检查最小长度
+      if (value.length < 6) {
+        callback(new Error("密码长度不能少于6个字符"));
+        return;
+      }
+
+      callback();
+    };
     return {
       form: {
         username: "",
@@ -149,17 +190,23 @@ export default {
       roleList: [],
       loading: false,
       randomAvatars: [
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Milo",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Oscar",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Max",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Bella",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucy",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Bailey",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Rocky",
-        "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fww2.sinaimg.cn%2Fmw690%2F0069ziSmly1hy8uhatakkj30sg0sggo5.jpg&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D2424897188%2C89842895%26fm%3D253%26fmt%3Dauto%26app%3D120%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fq7.itc.cn%2Fq_70%2Fimages03%2F20240512%2F8d063c75d60d4c9eb88e1956be2d873d.jpeg&thumburl=https%3A%2F%2Fimg1.baidu.com%2Fit%2Fu%3D2109052374%2C604822922%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips1.baidu.com%2Fit%2Fu%3D3834598948%2C2418503949%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg2.baidu.com%2Fit%2Fu%3D1781167939%2C4113493204%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D2786175775%2C3350769033%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg1.baidu.com%2Fit%2Fu%3D1999384104%2C253229540%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D1294304757%2C2284873529%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D114560984%2C2684912278%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D1294304757%2C2284873529%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D114560984%2C2684912278%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fn.sinaimg.cn%2Fsinakd20115%2F448%2Fw1024h1024%2F20240505%2Ff666-95c7f86ffcf274cdc68f4b646e52cec3.jpg&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D2201786265%2C1996910509%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fww1.sinaimg.cn%2Fmw690%2F00854yfugy1hs8i93ltofj30j60j6dgx.jpg&thumburl=https%3A%2F%2Fimg1.baidu.com%2Fit%2Fu%3D1296132577%2C3216763945%26fm%3D253%26fmt%3Dauto%26app%3D120%26f%3DJPEG%3Fw%3D500%26h%3D500",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fc-ssl.dtstatic.com%2Fuploads%2Fblog%2F202203%2F05%2F20220305205735_f6563.thumb.400_0.jpeg&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D1056874060%2C3663579464%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D400%26h%3D400",
       ],
+      passwordValid: {
+        firstLetter: false,
+        hasNumber: false,
+        hasLetter: false,
+        hasSpecialChar: false,
+        minLength: false,
+      },
       rules: {
         username: [
           { required: true, message: "请输入用户名", trigger: "blur" },
@@ -172,7 +219,7 @@ export default {
         ],
         password: [
           { required: true, message: "请输入密码", trigger: "blur" },
-          { min: 6, message: "密码长度不能少于6个字符", trigger: "blur" },
+          { validator: validatePassword, trigger: "blur" },
         ],
         real_name: [
           { max: 50, message: "真实姓名不能超过50个字符", trigger: "blur" },
@@ -196,9 +243,17 @@ export default {
       immediate: true,
       handler(val) {
         if (val) {
+          // ✅ 打开弹窗后清除表单验证状态
+          this.$nextTick(() => {
+            if (this.$refs.formRef) {
+              this.$refs.formRef.clearValidate();
+            }
+          });
           this.loadData();
         } else {
-          this.resetForm();
+          if(this.form.id){
+            this.resetForm();
+          }
         }
       },
     },
@@ -234,7 +289,7 @@ export default {
         const res = await getDepartments();
         // 根据您的数据结构，直接使用返回的数据
         this.departmentTree = res.data?.data || [];
-        console.log('部门树形数据:', this.departmentTree);
+        console.log("部门树形数据:", this.departmentTree);
       } catch (error) {
         console.error("加载部门列表失败:", error);
         throw error;
@@ -272,7 +327,7 @@ export default {
               : [],
             avatar: userData.avatar || "",
           };
-          console.log('加载用户详情，部门ID:', this.form.department_id);
+          console.log("加载用户详情，部门ID:", this.form.department_id);
         }
       } catch (error) {
         console.error("加载用户详情失败:", error);
@@ -322,7 +377,12 @@ export default {
 
     resetForm() {
       if (this.$refs.formRef) {
+        // ✅ 先重置表单数据，再清除验证状态
         this.$refs.formRef.resetFields();
+        // ✅ 额外调用 clearValidate 确保验证状态完全清除
+        this.$nextTick(() => {
+          this.$refs.formRef.clearValidate();
+        });
       }
       this.form = {
         username: "",
@@ -348,11 +408,11 @@ export default {
 
         if (isEdit && !payload.password) {
           delete payload.password;
+          delete payload.id;
         }
 
-        console.log("提交的数据:", payload);
-
         if (isEdit) {
+          payload.action = "update";
           await toUpdateUser(this.form.id, payload);
         } else {
           await toAddUser(payload);
@@ -362,9 +422,14 @@ export default {
         this.$emit("refresh");
         this.handleClose();
       } catch (error) {
-        console.error("提交失败:", error);
-        const msg = error.response?.data?.error || error.message || "操作失败";
-        this.$message.error(msg);
+        if (!error.__handled) {
+          const isEdit = !!this.form.id;
+          const msg =
+            error.response?.data?.error || error.message || isEdit
+              ? "用户修改失败"
+              : "用户添加失败";
+          this.$message.error(msg);
+        }
       } finally {
         this.loading = false;
       }
@@ -472,5 +537,10 @@ export default {
   width: 100%;
   height: 100%;
   border: none;
+}
+.permission-box {
+  border-radius: 4px;
+  width: 378.4px;
+  max-height: 400px;
 }
 </style>

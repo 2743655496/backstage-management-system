@@ -632,7 +632,9 @@ export default {
         this.fetchRoles();
       } catch (error) {
         if (error !== "cancel") {
-          this.$message.error(error.response?.data?.error || "角色删除失败");
+          if (!error.__handled) {
+            this.$message.error(error.response?.data?.error || "角色删除失败");
+          }
         }
       }
     },
@@ -650,7 +652,6 @@ export default {
   background-color: #f9f9f9;
   overflow: hidden;
 
-
   .search-section {
     margin-bottom: 20px;
     flex-shrink: 0;
@@ -659,7 +660,7 @@ export default {
       margin-bottom: -20px;
       padding-left: -0px;
     }
-    
+
     .form-item {
       display: flex;
       align-items: center;

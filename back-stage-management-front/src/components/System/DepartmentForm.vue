@@ -127,7 +127,15 @@ export default {
   watch: {
     visible(val) {
       this.localVisible = val;
-      if (val) this.fetchUsers();
+      if (val) {
+        this.fetchUsers();
+        // ✅ 打开弹窗后重置表单验证状态
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate();
+          }
+        });
+      }
     },
     department: {
       immediate: true,
@@ -143,6 +151,13 @@ export default {
               sort: 0,
               status: 1,
             };
+        
+        // ✅ 当部门数据变化时也清除验证状态
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate();
+          }
+        });
       },
     },
     departments: {
@@ -217,7 +232,16 @@ export default {
     },
 
     resetForm() {
-      if (this.$refs.form) this.$refs.form.resetFields();
+      if (this.$refs.form) {
+        // ✅ 先重置表单数据，再清除验证状态
+        this.$refs.form.resetFields();
+        // ✅ 额外调用 clearValidate 确保验证状态完全清除
+        this.$nextTick(() => {
+          this.$refs.form.clearValidate();
+        });
+      }
+      
+      // ✅ 设置表单默认值
       this.form =
         this.department && this.department.id
           ? { ...this.department }

@@ -27,7 +27,9 @@ SECRET_KEY = 'django-insecure-8pf_9*jnm8@)6(#bn=4ojbot+pcc^cszvpk&@)b)uux*sj=bq6
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.18.67', 'localhost','127.0.0.1']
+HOST = '192.168.10.143'
+
+ALLOWED_HOSTS = [f'{HOST}', 'localhost','127.0.0.1']
 
 # Application definition
 
@@ -267,7 +269,7 @@ if not DEBUG:
     }
 
 # 跨域配置
-CORS_ALLOWED_ORIGINS = ["http://localhost:8080", "http://192.168.18.67:8080", "https://192.168.18.67:8080"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:8080", f"http://{HOST}:8080", f"https://{HOST}:8080"]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [

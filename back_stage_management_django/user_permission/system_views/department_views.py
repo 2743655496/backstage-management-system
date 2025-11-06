@@ -88,7 +88,6 @@ class DepartmentUpdateView(APIView):
         error_response = strict_validate_fields(request.data, schema)
         if error_response:
             return error_response
-
         try:
             dept = Department.objects.get(id=dept_id, is_deleted=0)
         except Department.DoesNotExist:

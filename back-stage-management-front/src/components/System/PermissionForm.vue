@@ -81,7 +81,10 @@
 
 <script>
 import TreeSelect from "@/components/TreeSelect.vue";
-import { toAddPermission, toUpdatePermission } from "@/api/modules/System/permission";
+import {
+  toAddPermission,
+  toUpdatePermission,
+} from "@/api/modules/System/permission";
 import { getMenus } from "@/api/modules/System/menu";
 
 export default {
@@ -171,7 +174,15 @@ export default {
   watch: {
     visible(val) {
       this.localVisible = val;
-      if (val) this.loadMenus();
+      if (val) {
+        this.loadMenus();
+        // ✅ 打开弹窗后清除表单验证状态
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate();
+          }
+        });
+      }
     },
     permission: {
       immediate: true,
@@ -189,6 +200,13 @@ export default {
               parent_id: 0,
               menu_id: null,
             };
+        
+        // ✅ 当权限数据变化时也清除验证状态
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate();
+          }
+        });
       },
     },
     permissions: {
@@ -229,11 +247,14 @@ export default {
           code: this.form.code,
           type: this.form.type,
           description: this.form.description,
-          parent_id: this.form.parent_id,
           status: this.form.status,
         };
 
         let payload = { ...basePayload };
+
+        if (!isEdit) {
+          payload.parent_id = this.form.parent_id;
+        }
 
         if (this.form.type === 1) {
           payload.menu_id = this.form.menu_id;
@@ -254,14 +275,26 @@ export default {
           })
           .catch((err) => {
             if (!err.__handled) {
-              this.$message.error(err.response?.data?.error || "操作失败");
+              this.$message.error(
+                err.response?.data?.error || isEdit
+                  ? "权限修改失败"
+                  : "添加权限失败"
+              );
             }
           });
       });
     },
 
     resetForm() {
-      if (this.$refs.form) this.$refs.form.resetFields();
+      if (this.$refs.form) {
+        // ✅ 先重置表单数据，再清除验证状态
+        this.$refs.form.resetFields();
+        // ✅ 额外调用 clearValidate 确保验证状态完全清除
+        this.$nextTick(() => {
+          this.$refs.form.clearValidate();
+        });
+      }
+      
       this.form =
         this.permission && this.permission.id
           ? { ...this.permission }
@@ -280,7 +313,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .drawer-footer {

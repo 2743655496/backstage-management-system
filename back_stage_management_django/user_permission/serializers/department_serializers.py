@@ -51,8 +51,9 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "status": {
                 "required": True,
                 "error_messages": {
-                    "required": "请选择状态",
-                    "invalid": "状态值无效"
+                    "required": "请选择部门状态",
+                    'null': '部门状态不能为空',
+                    "invalid": "部门状态值无效"
                 }
             }
         }
@@ -94,5 +95,17 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
         if is_cyclic(value):
             raise serializers.ValidationError("上级部门不能为自身的子孙节点")
+
+        return value
+
+    def validate_status(self, value):
+        """验证部门状态"""
+        # 检查是否为空
+        if value is None:
+            raise serializers.ValidationError("部门状态不能为空")
+
+        # 检查状态值是否有效
+        if value not in [0, 1]:
+            raise serializers.ValidationError("部门状态只能为0(禁用)或1(启用)")
 
         return value

@@ -447,7 +447,7 @@
               label="所属部门"
               width="120"
             />
-            
+
             <!-- 新增角色列 -->
             <el-table-column label="角色" width="200">
               <template slot-scope="scope">
@@ -461,13 +461,16 @@
                   >
                     {{ role.name }}
                   </el-tag>
-                  <span v-if="!scope.row.roles || scope.row.roles.length === 0" class="no-roles">
+                  <span
+                    v-if="!scope.row.roles || scope.row.roles.length === 0"
+                    class="no-roles"
+                  >
                     无角色
                   </span>
                 </div>
               </template>
             </el-table-column>
-            
+
             <el-table-column
               prop="status"
               label="状态"
@@ -510,14 +513,14 @@
                 <el-button type="text" size="small" @click="editRow(scope.row)"
                   >编辑</el-button
                 >
-                <el-button
+                <!-- <el-button
                   v-if="scope.row.status === 0"
                   type="text"
                   size="small"
                   style="color: #67c23a"
                   @click="enableUser(scope.row)"
                   >启用</el-button
-                >
+                > -->
                 <el-button
                   type="text"
                   size="small"
@@ -592,7 +595,7 @@ export default {
       // 分页数据
       pagination: {
         total: 0,
-        pageSize: 10,
+        pageSize: 5,
         currentPage: 1,
       },
       // 搜索状态标识
@@ -600,7 +603,7 @@ export default {
       // 缓存搜索条件
       cachedSearchParams: {},
       // 角色标签类型映射
-      roleTagTypes: ['', 'success', 'info', 'warning', 'danger']
+      roleTagTypes: ["", "success", "info", "warning", "danger"],
     };
   },
   created() {
@@ -627,8 +630,8 @@ export default {
   methods: {
     // 获取角色标签类型
     getRoleTagType(roleId) {
-      const types = ['', 'success', 'info', 'warning', 'danger'];
-      return types[roleId % types.length] || '';
+      const types = ["", "success", "info", "warning", "danger"];
+      return types[roleId % types.length] || "";
     },
 
     // 新增：切换搜索区域显示/隐藏
@@ -938,11 +941,11 @@ export default {
             flex-wrap: wrap;
             gap: 4px;
             align-items: center;
-            
+
             .role-tag {
               margin: 1px;
             }
-            
+
             .no-roles {
               color: #909399;
               font-size: 12px;

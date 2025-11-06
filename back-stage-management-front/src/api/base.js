@@ -1,5 +1,5 @@
 const api = {
-    baseUrl: "https://192.168.18.67:8000/",//域名
+    baseUrl: "https://192.168.10.143:8000/",//域名
     login: "/api/system/auth/login/",//登录,
     checklogin: "/api/system/auth/status/",//检查登录状态,
     slider_verify: "/api/system/auth/slider_verify/", //滑块验证接口

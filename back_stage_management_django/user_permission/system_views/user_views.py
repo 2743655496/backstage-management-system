@@ -3,9 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator
 from user_permission.models import User,UserRole,Role,Department
-from user_permission.serializers.user_serializers import UserCreateSerializer, UserListSerializer
+from user_permission.serializers.user_serializers import UserUpdateCreateSerializer, UserListSerializer
 from user_permission.utils.image_utils import save_avatar_file
 from utils.decorators import atomic_view
+from utils.serializer_errors import extract_error_message
+from utils.validators import strict_validate_fields
 
 
 class UserListAPIView(APIView):
@@ -84,7 +86,53 @@ class UserListAPIView(APIView):
 
     @atomic_view
     def post(self, request):
-        """创建用户 - 使用 UserCreateSerializer"""
+        """创建用户"""
+        user_schema = {
+            "avatar": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "department_id": {"type": (int, type(None)), "required": False},
+            "email": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "password": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "phone": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "real_name": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "status": {
+                "type": int,
+                "required": True,
+                "choices": [0, 1]
+            },
+            "role_ids": {
+                "type": list,
+                "required": False
+            },
+            "username": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+        }
+
+        error_response = strict_validate_fields(request.data, user_schema)
+        if error_response:
+            return error_response
         try:
             data = request.data.copy()
 
@@ -95,7 +143,7 @@ class UserListAPIView(APIView):
                 data['avatar'] = filename if filename else None
 
             # 创建序列化器
-            serializer = UserCreateSerializer(data=data, context={'request': request})
+            serializer = UserUpdateCreateSerializer(data=data, context={'request': request})
 
             if serializer.is_valid():
                 user = serializer.save()
@@ -106,9 +154,10 @@ class UserListAPIView(APIView):
                     'message': '用户创建成功'
                 }, status=status.HTTP_201_CREATED)
             else:
+                message = extract_error_message(serializer.errors)
                 return Response({
                     'success': False,
-                    'message': '数据验证失败',
+                    'message': message,
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -158,7 +207,54 @@ class UserDetailAPIView(APIView):
 
     @atomic_view
     def post(self, request, pk):
+
         """更新用户信息或启用/禁用用户"""
+        user_schema = {
+            "avatar": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "department_id": {"type": (int, type(None)), "required": False},
+            "email": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "phone": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "real_name": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "status": {
+                "type": int,
+                "required": True,
+                "choices": [0, 1]
+            },
+            "role_ids": {
+                "type": list,
+                "required": False
+            },
+            "username": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "action": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+        }
+
+        error_response = strict_validate_fields(request.data, user_schema)
+        if error_response:
+            return error_response
         try:
             action = request.data.get('action')
             user = User.objects.get(id=pk, is_deleted=0)
@@ -179,7 +275,8 @@ class UserDetailAPIView(APIView):
                     'message': '用户禁用成功'
                 }, status=status.HTTP_200_OK)
 
-            else:
+
+            elif action == 'update':
                 # 提前处理头像数据流
                 data = request.data.copy()
                 avatar_data = data.get('avatar', '')
@@ -190,7 +287,7 @@ class UserDetailAPIView(APIView):
                     data['avatar'] = avatar_data.strip("/avatars/")
 
                 # 更新用户信息
-                serializer = UserCreateSerializer(user, data=data, partial=True, context={'request': request})
+                serializer = UserUpdateCreateSerializer(user, data=data, partial=True, context={'request': request})
                 if serializer.is_valid():
                     updated_user = serializer.save()
 
@@ -215,11 +312,17 @@ class UserDetailAPIView(APIView):
                         'data': user_data
                     }, status=status.HTTP_200_OK)
                 else:
+                    message = extract_error_message(serializer.errors)
                     return Response({
                         'success': False,
-                        'message': '数据验证失败',
+                        'message': message,
                         'errors': serializer.errors
                     }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({
+                    'success': False,
+                    'message': '未知操作'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         except User.DoesNotExist:
             return Response({

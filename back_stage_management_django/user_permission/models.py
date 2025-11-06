@@ -2,9 +2,9 @@ from django.db import models
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=50, unique=True, verbose_name='部门名称')
+    name = models.CharField(max_length=50, verbose_name='部门名称')
     parent_id = models.BigIntegerField(default=0, verbose_name='父部门ID')
-    code = models.CharField(max_length=50, unique=True, verbose_name='部门编码')
+    code = models.CharField(max_length=50, verbose_name='部门编码')
     description = models.TextField(blank=True, null=True, verbose_name='部门描述')
     manager_id = models.BigIntegerField(blank=True, null=True, verbose_name='部门负责人ID')
     sort = models.IntegerField(default=0, verbose_name='排序')
@@ -44,14 +44,23 @@ class Role(models.Model):
             models.Index(fields=['status']),
         ]
 
+    def get_using_users_count(self):
+        """获取使用该角色的用户数量"""
+        return UserRole.objects.filter(role_id=self.id).count()
+
+    def get_using_users(self):
+        """获取使用该角色的用户列表"""
+        user_ids = UserRole.objects.filter(role_id=self.id).values_list('user_id', flat=True)
+        return User.objects.filter(id__in=user_ids, is_deleted=0)
+
 
 class User(models.Model):
-    username = models.CharField(max_length=50, unique=True, verbose_name='用户名')
+    username = models.CharField(max_length=50, verbose_name='用户名')
     password = models.CharField(max_length=255, verbose_name='密码')
     real_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='真实姓名')
     email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='邮箱')
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='手机号')
-    avatar = models.CharField(max_length=255, blank=True, null=True, verbose_name='头像')
+    avatar = models.CharField(max_length=510, blank=True, null=True, verbose_name='头像')
     department_id = models.BigIntegerField(blank=True, null=True, verbose_name='所属部门ID')
     status = models.SmallIntegerField(default=1, verbose_name='状态(0禁用,1启用)')
     last_login_time = models.DateTimeField(blank=True, null=True, verbose_name='最后登录时间')
@@ -118,7 +127,7 @@ class Permission(models.Model):
         (3, '按钮权限'),
     )
     name = models.CharField(max_length=50, verbose_name='权限名称')
-    code = models.CharField(max_length=100, unique=True, verbose_name='权限标识')
+    code = models.CharField(max_length=100, verbose_name='权限标识')
     description = models.TextField(blank=True, null=True, verbose_name='权限描述')
     type = models.SmallIntegerField(choices=PERMISSION_TYPE_CHOICES, verbose_name='权限类型')
     menu_id = models.BigIntegerField(blank=True, null=True, verbose_name='关联菜单ID(仅菜单权限需要)')

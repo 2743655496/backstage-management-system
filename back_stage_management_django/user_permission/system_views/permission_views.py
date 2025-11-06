@@ -6,6 +6,77 @@ from rest_framework.response import Response
 from rest_framework import status
 from utils.serializer_errors import extract_error_message
 from utils.decorators import atomic_view
+from utils.validators import strict_validate_fields
+
+
+def get_permission_schema(data=None, is_update=False):
+    """
+    根据权限类型动态生成验证规则
+    """
+    if data:
+        permission_type = data.get('type')
+    else:
+        permission_type = None
+
+    # 基础规则（所有权限类型通用）
+    base_schema = {
+        "name": {
+            "type": str,
+            "required": True,
+            "allow_blank": False
+        },
+        "code": {
+            "type": str,
+            "required": True,
+            "allow_blank": False
+        },
+        "type": {
+            "type": int,
+            "required": True,
+            "choices": [1, 2, 3]
+        },
+        "description": {
+            "type": str,
+            "required": False,
+            "allow_blank": True
+        },
+
+        "status": {
+            "type": int,
+            "required": True,
+            "choices": [0, 1]
+        }
+    }
+
+    if not is_update:
+        base_schema["parent_id"] = {
+            "type": int,
+            "required": False,
+            "allow_blank": True
+        }
+    # 根据权限类型添加特定字段
+    if int(permission_type) == 1:  # 菜单权限
+        print(">>>>>>>>>1")
+        base_schema["menu_id"] = {
+            "type": int,
+            "required": True,
+            "allow_blank": False
+        }
+    elif int(permission_type) == 2:  # 接口权限
+        print(">>>>>>>>>>>>>>>>>>>>2>")
+        base_schema["api_method"] = {
+            "type": str,
+            "required": True,
+            "allow_blank": False
+        }
+        base_schema["api_path"] = {
+            "type": str,
+            "required": True,
+            "allow_blank": False
+        }
+
+    return base_schema
+
 
 class PermissionListView(APIView):
     def get(self, request):
@@ -40,9 +111,19 @@ class PermissionListView(APIView):
 
 
 class PermissionCreateView(APIView):
-
     @atomic_view
     def post(self, request):
+        """创建权限"""
+        data = request.data
+
+        # ✅ 动态获取验证规则
+        schema = get_permission_schema(data=data, is_update=False)
+
+        # ✅ 使用原来的 strict_validate_fields 函数
+        error_response = strict_validate_fields(data, schema)
+        if error_response:
+            return error_response
+
         serializer = PermissionSerializer(data=request.data)
         if not serializer.is_valid():
             message = extract_error_message(serializer.errors)
@@ -68,44 +149,36 @@ class PermissionCreateView(APIView):
 class PermissionUpdateView(APIView):
     @atomic_view
     def post(self, request, pk):
+        """更新权限"""
+        data = request.data
+
+        # ✅ 动态获取验证规则（更新时所有字段都是可选的）
+        schema = get_permission_schema(data=data, is_update=True)
+
+        # ✅ 使用原来的 strict_validate_fields 函数
+        error_response = strict_validate_fields(data, schema)
+        if error_response:
+            return error_response
+
         try:
             permission = Permission.objects.get(id=pk, is_deleted=0)
         except Permission.DoesNotExist:
             return Response({"error": "权限不存在"}, status=status.HTTP_404_NOT_FOUND)
 
-        data = request.data
+        # ✅ 使用序列化器进行完整验证
+        serializer = PermissionSerializer(permission, data=request.data, partial=True)
+        if not serializer.is_valid():
+            message = extract_error_message(serializer.errors)
+            return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ 权限标识唯一性校验（排除当前记录）
-        new_code = data.get("code")
-        if new_code and Permission.objects.filter(code=new_code, is_deleted=0).exclude(id=pk).exists():
-            return Response({"message": "权限标识已存在"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.save(update_time=timezone.now())
+            return Response({"message": "权限更新成功"})
 
-        # ✅ 通用字段更新
-        for field in ["name", "code", "description", "type", "parent_id", "status"]:
-            if field in data:
-                setattr(permission, field, data[field])
-
-        # ✅ 菜单权限字段更新
-        if data.get("type") == 1:
-            permission.menu_id = data.get("menu_id")
-
-        # ✅ 接口权限字段更新
-        if data.get("type") == 2:
-            permission.api_method = data.get("api_method")
-            permission.api_path = data.get("api_path")
-
-        # ✅ 清除无关字段（防止残留）
-        if data.get("type") != 1:
-            permission.menu_id = None
-        if data.get("type") != 2:
-            permission.api_method = None
-            permission.api_path = None
-
-        permission.update_time = timezone.now()
-        permission.save()
-
-        return Response({"message": "权限更新成功"}, status=status.HTTP_200_OK)
-
+        except Exception as e:
+            return Response({
+                "message": f"权限更新失败: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PermissionDeleteView(APIView):

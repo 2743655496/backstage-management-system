@@ -3,9 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator
 from user_permission.models import Role, RolePermission
-from user_permission.serializers.role_serializers import RoleSerializer, RoleCreateSerializer, RoleUpdateSerializer
+from user_permission.serializers.role_serializers import RoleSerializer, RoleUpdateCreateSerializer
 from utils.decorators import atomic_view
 from utils.serializer_errors import extract_error_message
+from utils.validators import strict_validate_fields
 
 
 class RoleListCreateView(APIView):
@@ -104,11 +105,42 @@ class RoleListCreateView(APIView):
     @atomic_view
     def post(self, request):
         """创建角色"""
-        serializer = RoleCreateSerializer(data=request.data)
+        # ✅ 前置字段完整性校验
+        # 定义角色创建字段验证规则
+        role_schema = {
+            "name": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "code": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "description": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "status": {
+                "type": int,
+                "required": True,
+                "choices": [0, 1]
+            },
+            "permissions": {
+                "type": list,
+                "required": False
+            }
+        }
+
+        error_response = strict_validate_fields(request.data, role_schema)
+        if error_response:
+            return error_response
+        serializer = RoleUpdateCreateSerializer(data=request.data)
         if serializer.is_valid():
             # 设置创建人
             role = serializer.save(creator_id=request.my_user.id)
-
             # 获取权限 ID 列表
             permission_ids = request.data.get("permissions", [])
             if isinstance(permission_ids, list) and permission_ids:
@@ -175,6 +207,43 @@ class RoleDetailView(APIView):
     @atomic_view
     def post(self, request, pk):
         """更新或删除角色"""
+
+        role_schema = {
+            "action": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "name": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "code": {
+                "type": str,
+                "required": True,
+                "allow_blank": False
+            },
+            "description": {
+                "type": str,
+                "required": False,
+                "allow_blank": True
+            },
+            "status": {
+                "type": int,
+                "required": True,
+                "choices": [0, 1]
+            },
+            "permissions": {
+                "type": list,
+                "required": False
+            }
+        }
+
+        error_response = strict_validate_fields(request.data, role_schema)
+        if error_response:
+            return error_response
+
         role = self.get_object(pk)
         if not role:
             return Response({
@@ -185,7 +254,17 @@ class RoleDetailView(APIView):
         action = request.data.get('action', '')
 
         if action == 'update':
-            serializer = RoleUpdateSerializer(role, data=request.data, partial=True)
+            # 检查是否要更新状态为禁用，并且有用户使用
+            new_status = request.data.get('status')
+            if new_status == 0 and role.status != 0:  # 状态从启用变为禁用
+                using_users_count = role.get_using_users_count()
+                if using_users_count > 0:
+                    return Response({
+                        'success': False,
+                        'message': f'无法禁用角色，当前有 {using_users_count} 个用户正在使用此角色'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = RoleUpdateCreateSerializer(role, data=request.data, partial=True)
             if serializer.is_valid():
 
                 serializer.save()
@@ -212,10 +291,10 @@ class RoleDetailView(APIView):
                     'message': '角色更新成功',
                     'data': RoleSerializer(role).data
                 })
-
+            message = extract_error_message(serializer.errors)
             return Response({
                 'success': False,
-                'message': '数据验证失败',
+                'message': message,
                 'errors': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -229,6 +308,13 @@ class RoleDetailView(APIView):
             })
 
         elif action == 'disable':
+            # 禁用角色前检查是否有用户使用
+            using_users_count = role.get_using_users_count()
+            if using_users_count > 0:
+                return Response({
+                    'success': False,
+                    'message': f'无法禁用角色，当前有 {using_users_count} 个用户正在使用此角色'
+                }, status=status.HTTP_400_BAD_REQUEST)
             # 禁用角色
             role.status = 0
             role.save()
@@ -259,6 +345,19 @@ class RoleDeleteView(APIView):
     @atomic_view
     def post(self, request, pk):
         role = self.get_object(pk)
+        if not role:
+            return Response({
+                'success': False,
+                'message': '角色不存在'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+            # 删除前检查是否有用户使用
+        using_users_count = role.get_using_users_count()
+        if using_users_count > 0:
+            return Response({
+                'success': False,
+                'message': f'无法删除角色，当前有 {using_users_count} 个用户正在使用此角色'
+            }, status=status.HTTP_400_BAD_REQUEST)
         # 软删除角色
         role.is_deleted = 1
         role.save()

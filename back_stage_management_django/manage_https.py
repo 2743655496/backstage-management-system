@@ -51,4 +51,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python manage_https.py --host 192.168.18.67 --port 8000
+# python manage_https.py --host 192.168.10.143 --port 8000
