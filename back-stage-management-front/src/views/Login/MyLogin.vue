@@ -93,7 +93,6 @@ export default {
   components: { IconDropdown, ColorPalette },
   data() {
     return {
-      current_color:localStorage.getItem("light_color") ||"white",
       layoutMode: localStorage.getItem("layoutMode") || "right", // 初始布局
       gradientColor: localStorage.getItem("gradientColor") || "#bddff5",
       isDay: true,
@@ -112,7 +111,12 @@ export default {
     };
   },
   computed: {
+    ...mapGetters("LightModule", ["isLightOn"]),
     ...mapGetters("LanguageModule", ["currentLanguage", "languages"]),
+    current_color() {
+    // 根据 isLightOn 动态计算颜色
+    return this.isLightOn ? "#000000" : "white";
+  },
     backgroundStyle() {
       return {
         background: `linear-gradient(155deg, ${this.current_color}, ${this.gradientColor} 50%, ${this.current_color})`,
@@ -122,6 +126,7 @@ export default {
   mounted() {
   },
   methods: {
+    ...mapActions("LightModule", ["toggleLight"]),
     ...mapActions("LanguageModule", ["changeLanguage"]),
     /**
      * 切换语言
@@ -154,15 +159,12 @@ export default {
         setTimeout(() => {
           this.isDay = false;
           this.isSpinning = false;
-        }, 200); // 动画持续时间
-        this.current_color = "white"
-        localStorage.setItem("light_color", this.current_color); // 存储为字符串
+        }, 100); // 动画持续时间
       } else {
         // 月亮直接切换为太阳，无动画
         this.isDay = true;
-        this.current_color = "#000000"
-        localStorage.setItem("light_color", this.current_color); // 存储为字符串
       }
+      this.toggleLight(); // 每次点击切换 isLightOn
     },
     handleColorSelect(color) {
       this.gradientColor = color;

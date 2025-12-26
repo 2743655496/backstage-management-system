@@ -1,5 +1,5 @@
 <template>
-  <el-container class="loginform">
+  <el-container class="loginform" :style="background_color_style">
     <el-header></el-header>
     <el-main>
       <div class="form">
@@ -7,7 +7,7 @@
           style="
             font-family: 'Georgia', serif;
             font-size: 32px;
-            color: #303133;
+
             font-style: italic;
           "
         >
@@ -22,6 +22,7 @@
           :model="form"
           :label-width="$t('login.label_width')"
           class="login_form"
+          :class="isLightOn ? 'light-mode' : 'dark-mode'"
         >
           <el-form-item :label="$t('login.username')" prop="username">
             <el-input
@@ -48,9 +49,11 @@
 
         <div class="remember_me">
           <div class="remember_me_left">
-            <el-checkbox v-model="form.remember">{{
-              $t("login.remember_me")
-            }}</el-checkbox>
+            <el-checkbox
+              v-model="form.remember"
+              :class="isLightOn ? 'light-mode' : 'dark-mode'"
+              >{{ $t("login.remember_me") }}</el-checkbox
+            >
           </div>
           <div class="remember_me_right">
             <el-link
@@ -84,30 +87,33 @@
             </div></el-col
           >
         </el-row>
-        <el-divider content-position="center" class="divider">{{
-          $t("login.login_else")
-        }}</el-divider>
+        <div :class="isLightOn ? 'divider-light-mode' : 'divider-dark-mode'">
+          <el-divider content-position="center">{{
+            $t("login.login_else")
+          }}</el-divider>
+        </div>
+
         <div class="social-login-container">
           <!-- Ghost 纯图标无边框按钮 -->
-          <button class="social-btn ghost">
+          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-github-fill"></i>
           </button>
-          <button class="social-btn ghost">
+          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-weixin"></i>
           </button>
-          <button class="social-btn ghost">
+          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-QQ"></i>
           </button>
-          <button class="social-btn ghost">
+          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-weibo"></i>
           </button>
         </div>
         <el-row class="footer_content">
           <span
             >{{ $t("login.footer_content_start")
-            }}<a class="minimal-link" @click="router_path('/auth/create')">{{
+            }}<el-link :underline="false" type="primary" class="minimal-link" @click="router_path('/auth/create')">{{
               $t("login.footer_content_end")
-            }}</a></span
+            }}</el-link></span
           >
         </el-row>
       </div>
@@ -120,11 +126,21 @@
 
 <script>
 import SliderVerify from "@/components/Login/SliderVerify.vue";
-import { toslider_verify, toLogin } from "@/api/modules/login.js";
-import { resetLogoutFlag } from "@/api/ajax";
+import { toslider_verify } from "@/api/modules/login.js";
+import { mapGetters } from "vuex";
 export default {
   components: {
     SliderVerify,
+  },
+  computed: {
+    ...mapGetters("LightModule", ["isLightOn"]),
+    background_color_style() {
+      // 根据 isLightOn 动态计算颜色
+      return {
+        backgroundColor: this.isLightOn ? "#000000" : "white",
+        color: this.isLightOn ? "white" : "black",
+      };
+    },
   },
   data() {
     return {
@@ -248,10 +264,35 @@ export default {
       .login_form {
         margin-top: 25px;
       }
+      .login_form.light-mode {
+        ::v-deep(.el-form-item__label) {
+          color: white; // 白色
+        }
+      }
+
+      .login_form.dark-mode {
+        ::v-deep(.el-form-item__label) {
+          color: #303133; // 原色
+        }
+      }
+
       .remember_me {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        .remember_me_left {
+          .light-mode {
+            ::v-deep(.el-checkbox__label) {
+              color: #ffffff; // 白色
+            }
+          }
+
+          .dark-mode {
+            ::v-deep(.el-checkbox__label) {
+              color: #303133; // 原色
+            }
+          }
+        }
       }
       .loginbutton {
         margin-top: 25px;
@@ -265,14 +306,22 @@ export default {
           max-width: 215.4px;
         }
       }
-      .el-divider__text {
+      .divider-light-mode .el-divider__text {
         position: absolute;
-        background-color: #fff;
+        padding: 0 10px;
+        font-weight: 500;
+        color: #909399;
+        font-size: 13px;
+        background-color: #000000;
+      }
+      .divider-dark-mode .el-divider__text {
+        position: absolute;
         padding: 0 10px;
         font-weight: 500;
         color: #909399;
         font-size: 13px;
       }
+
       .social-login-container {
         display: flex;
         flex-wrap: wrap;
@@ -292,12 +341,20 @@ export default {
         transition: all 0.2s ease;
       }
       /* Ghost：仅图标，无背景无边框 */
-      .social-btn.ghost {
+      .social-btn.ghost2 {
         background: transparent;
         border: none;
         color: #303133;
       }
+      .social-btn.ghost {
+        background: transparent;
+        border: none;
+        color: white;
+      }
       .social-btn.ghost:hover {
+        color: #409eff;
+      }
+      .social-btn.ghost2:hover {
         color: #409eff;
       }
       .footer_content {
@@ -307,9 +364,9 @@ export default {
         justify-content: center;
         font-size: 15px;
         .minimal-link {
-          cursor: pointer;
-          color: #409eff;
-          text-decoration: none;
+          font-size: 15px;
+          margin-top: -2px;
+
         }
       }
     }

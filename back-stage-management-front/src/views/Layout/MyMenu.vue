@@ -8,12 +8,12 @@
         router
         :collapse="isCollapse"
       >
-      <el-menu-item disabled>
-        <div class="logo">
-          <img src="@/assets/images/horse.png" />
-        </div>
-        <span slot="title">后台管理系统</span>
-      </el-menu-item>
+        <el-menu-item disabled>
+          <div class="logo">
+            <img src="@/assets/images/horse.png" />
+          </div>
+          <span slot="title">后台管理系统</span>
+        </el-menu-item>
       </el-menu>
     </div>
 
@@ -48,7 +48,7 @@ export default {
     ...mapGetters("PermissionModule", ["menuPermissions"]),
     menu_list() {
       return this.menuPermissions || [];
-    }
+    },
   },
   mounted() {
     this.updateMenuFromRoute(this.$route);
@@ -60,8 +60,8 @@ export default {
     },
     updateMenu(path) {
       this.setCurrentMenuaddTabMenu(path);
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -74,13 +74,13 @@ export default {
 
   .menu-header {
     .el-menu-item {
-        margin-left: -5px;
-        height: 56px;
-        font-size: 14px;
-        color: #303133;
-        cursor: pointer;
-        transition: border-color .3s,background-color .3s,color .3s;
-        box-sizing: border-box;
+      margin-left: -5px;
+      height: 56px;
+      font-size: 14px;
+      color: #303133;
+      cursor: pointer;
+      transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+      box-sizing: border-box;
     }
     flex-shrink: 0;
     position: sticky;

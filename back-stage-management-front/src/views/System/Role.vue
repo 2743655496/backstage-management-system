@@ -433,7 +433,6 @@ export default {
       roleList: [],
       formVisible: false,
       currentRoleId: null,
-      resizeTimer: null,
       screenResizeTimer: null,
       pagination: {
         total: 0,
@@ -458,9 +457,7 @@ export default {
   beforeDestroy() {
     window.removeEventListener("resize", this.handleResize);
     window.removeEventListener("resize", this.handleScreenResize);
-    if (this.resizeTimer) {
-      clearTimeout(this.resizeTimer);
-    }
+
     if (this.screenResizeTimer) {
       clearTimeout(this.screenResizeTimer);
     }
@@ -496,16 +493,9 @@ export default {
       }
       this.screenResizeTimer = setTimeout(() => {
         this.checkScreenSize();
-        this.updateTableHeight();
-      }, 150);
-    },
-
-    handleResize() {
-      if (this.resizeTimer) {
-        clearTimeout(this.resizeTimer);
-      }
-      this.resizeTimer = setTimeout(() => {
-        this.updateTableHeight();
+        this.$nextTick(() => {
+          this.updateTableHeight();
+        });
       }, 150);
     },
 

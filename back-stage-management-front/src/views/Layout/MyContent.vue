@@ -1,12 +1,16 @@
 <template>
   <el-container class="my-el-container">
-    <el-header style="font-size: 12px" class="my-el-header">
-      <el-row class="rowone">
+    <el-header
+      style="font-size: 12px"
+      class="my-el-header"
+      :class="{ immersive: isImmersive }"
+    >
+      <el-row class="rowone" v-show="!isImmersive">
         <button @click="changeMenu" class="btn" v-if="!shouldHideMenuButton">
           <i v-if="!isCollapse" class="el-icon-s-fold"></i>
           <i v-else class="el-icon-s-unfold"></i>
         </button>
-        <button class="btn">
+        <button class="btn" @click="refreshView">
           <i class="el-icon-refresh"></i>
         </button>
         <el-breadcrumb
@@ -43,23 +47,28 @@
           :selectedIcon="currentLanguage"
           @select="changeLang"
         />
-        <button class="btn-radius">
-          <i class="iconfont icon-fangda"></i>
-          <!-- <i class="iconfont icon-suoxiao"></i> -->
+        <button class="btn-radius" @click="toggleFullscreen">
+          <i
+            :class="
+              isFullscreen ? 'iconfont icon-suoxiao' : 'iconfont icon-fangda'
+            "
+          ></i>
         </button>
+
         <button class="btn-radius">
           <i class="el-icon-message-solid"></i>
         </button>
-        <!-- <button class="circle-btn">
-          <img src="@/assets/horse.png" alt="用户头像" />
-        </button> -->
         <ButtonImageDropdown />
       </el-row>
-      <Tabs />
+      <Tabs
+        @refresh-view="refreshView"
+        @fangda-suoxiao="fangda_suoxiao"
+        :isImmersive="isImmersive"
+      />
     </el-header>
 
-    <el-main>
-      <router-view></router-view>
+    <el-main :class="{ immersive: isImmersive }">
+      <router-view :key="viewKey"></router-view>
     </el-main>
   </el-container>
 </template>
@@ -85,21 +94,45 @@ export default {
   data() {
     return {
       shouldHideMenuButton: false,
+      viewKey: 0, // 用来强制刷新 router-view
+      isFullscreen: false, // 是否全屏
+      isImmersive: false, // ⭐ 新增：沉浸模式
     };
   },
   watch: {
     shouldHideMenuButton(val) {
       if (val && !this.isCollapse) {
-        this.$emit("changeMenu"); // 触发父组件折叠逻辑
+        if (!this.isImmersive) {
+          this.$emit("changeMenu"); // 触发父组件折叠逻辑
+        }
       }
     },
   },
   mounted() {
     this.checkScreenWidth();
     window.addEventListener("resize", this.checkScreenWidth);
+
+    // 监听全屏变化
+    document.addEventListener("fullscreenchange", this.fullscreenListener);
+    document.addEventListener(
+      "webkitfullscreenchange",
+      this.fullscreenListener
+    );
+    document.addEventListener("mozfullscreenchange", this.fullscreenListener);
+    document.addEventListener("MSFullscreenChange", this.fullscreenListener);
   },
   beforeDestroy() {
     window.removeEventListener("resize", this.checkScreenWidth);
+    document.removeEventListener("fullscreenchange", this.fullscreenListener);
+    document.removeEventListener(
+      "webkitfullscreenchange",
+      this.fullscreenListener
+    );
+    document.removeEventListener(
+      "mozfullscreenchange",
+      this.fullscreenListener
+    );
+    document.removeEventListener("MSFullscreenChange", this.fullscreenListener);
   },
   methods: {
     ...mapActions("MenuStateModule", ["setCurrentMenuaddTabMenu"]),
@@ -108,15 +141,15 @@ export default {
       this.shouldHideMenuButton = window.innerWidth <= 776;
     },
     /**
-     * 自定义事件，触发父组件里的事件
+     * 自定义事件，触发父组件里的事件，折叠左侧菜单栏
      */
     changeMenu() {
       this.$emit("changeMenu");
-      if (this.$route.path === '/dashboard/analysis') {
-
-        this.triggerChartRemount()
+      if (this.$route.path === "/dashboard/analysis") {
+        this.triggerChartRemount();
       }
     },
+    // 面包屑菜单跳转
     navigateTo(item) {
       const targetPath = item.children?.[0]?.path || item.path;
       this.setCurrentMenuaddTabMenu(targetPath);
@@ -127,6 +160,55 @@ export default {
      */
     changeLang(command) {
       this.changeLanguage(command.name);
+    },
+    /**
+     * 刷新
+     */
+    refreshView() {
+      this.viewKey++;
+      // 如果你希望在工作台刷新时顺带重渲染图表（和你 changeMenu 逻辑类似）
+      if (this.$route.path === "/dashboard/analysis") {
+        this.triggerChartRemount();
+      }
+    },
+    // 沉浸模式
+    fangda_suoxiao() {
+      this.isImmersive = !this.isImmersive;
+      // 通知父级（Layout.vue）隐藏/显示侧边栏
+      this.$emit("fangda-suoxiao", !this.isImmersive);
+
+      if (this.shouldHideMenuButton && !this.isCollapse) {
+        if (!this.isImmersive) {
+          this.$emit("changeMenu"); // 触发父组件折叠逻辑
+        }
+      }
+    },
+    /**
+     * 全屏功能
+     */
+    fullscreenListener() {
+      this.isFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    },
+    toggleFullscreen() {
+      if (!this.isFullscreen) {
+        // 进入全屏
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      } else {
+        //  退出全屏
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+      }
     },
   },
 };
@@ -169,6 +251,11 @@ export default {
   }
   .my-el-header {
     background-color: aqua;
+    // height: 82px; // 默认高度（50px rowone + 32px tabs）
+    // transition: height 0.3s ease;
+    &.immersive {
+      height: 32px !important; // ⭐ 只保留 Tabs 的高度
+    }
     .rowone {
       height: 50px;
       background-color: #fff;
@@ -241,7 +328,10 @@ export default {
     overflow: auto;
     box-sizing: border-box;
     padding: 20px;
-    margin: 22px 0px 0px 0px; /* 上右下左 */
+    margin: 24px 0px 0px 0px; /* 上右下左 */
+    &.immersive {
+      margin: 0px 0px 0px 0px !important; // ⭐ 只保留 Tabs 的高度
+    }
   }
   .el-main::-webkit-scrollbar {
     width: 8px;

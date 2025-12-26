@@ -8,6 +8,7 @@ import PermissionModule from './modules/PermissionModule'
 import chartRenderKey from './modules/chartRenderKey';
 import createPersistedState from 'vuex-persistedstate'
 import SessionModule from './modules/SessionModule';
+import LightModule from './modules/LightModule'
 
 Vue.use(Vuex)
 
@@ -28,12 +29,13 @@ export default new Vuex.Store({
     PermissionModule,
     chartRenderKey,
     SessionModule,
+    LightModule
   },
   plugins: [
     createPersistedState({
-      paths: ['MenuStateModule',// 只持久化 LockModule 的 isLocked 和 LockPassword
-      'LockModule.isLocked',
-      'LockModule.LockPassword','PermissionModule'], // 只持久化标签页模块
+      paths: ['MenuStateModule',
+        'LockModule.isLocked',
+        'LockModule.LockPassword', 'PermissionModule', 'LightModule'], // 持久化
       storage: window.localStorage // 使用sessionStorage（可选：换成localStorage可长期保存）
     })
   ]

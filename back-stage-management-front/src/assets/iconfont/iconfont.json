@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42529849",
+      "name": "关闭右侧",
+      "font_class": "guanbiyouce",
+      "unicode": "e68d",
+      "unicode_decimal": 59021
+    },
+    {
+      "icon_id": "4646604",
+      "name": "关闭全部",
+      "font_class": "guanbiquanbu",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "5010515",
+      "name": "关闭其他",
+      "font_class": "close-other",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "27459369",
+      "name": "新窗口打开",
+      "font_class": "xinchuangkoudakai",
+      "unicode": "e77f",
+      "unicode_decimal": 59263
+    },
+    {
+      "icon_id": "42529848",
+      "name": "关闭左侧",
+      "font_class": "guanbizuoce",
+      "unicode": "e68c",
+      "unicode_decimal": 59020
+    },
+    {
       "icon_id": "11649031",
       "name": "菜单管理",
       "font_class": "caidanguanli",

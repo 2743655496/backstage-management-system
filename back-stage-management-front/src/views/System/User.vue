@@ -561,6 +561,7 @@ import {
   toDisableUser,
 } from "@/api/modules/System/user";
 import { TimeFormatter } from "@/utils/timeFormatter";
+import { time } from "echarts/core";
 
 export default {
   name: "User",
@@ -590,7 +591,6 @@ export default {
       userList: [],
       formVisible: false,
       currentUserId: null,
-      resizeTimer: null,
       screenResizeTimer: null,
       // 分页数据
       pagination: {
@@ -613,16 +613,14 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.updateTableHeight();
-      window.addEventListener("resize", this.handleResize);
+      // window.addEventListener("resize", this.handleResize);
       window.addEventListener("resize", this.handleScreenResize);
     });
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.handleResize);
+    // window.removeEventListener("resize", this.handleResize);
     window.removeEventListener("resize", this.handleScreenResize);
-    if (this.resizeTimer) {
-      clearTimeout(this.resizeTimer);
-    }
+
     if (this.screenResizeTimer) {
       clearTimeout(this.screenResizeTimer);
     }
@@ -664,19 +662,11 @@ export default {
       }
       this.screenResizeTimer = setTimeout(() => {
         this.checkScreenSize();
-        this.updateTableHeight();
+        this.$nextTick(() => {
+          this.updateTableHeight();
+        });
       }, 150);
     },
-
-    handleResize() {
-      if (this.resizeTimer) {
-        clearTimeout(this.resizeTimer);
-      }
-      this.resizeTimer = setTimeout(() => {
-        this.updateTableHeight();
-      }, 150);
-    },
-
     updateTableHeight() {
       const cardEl = this.$el.querySelector(".card");
       const headerEl = cardEl.querySelector(".header");

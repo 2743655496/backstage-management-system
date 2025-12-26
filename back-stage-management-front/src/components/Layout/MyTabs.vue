@@ -45,38 +45,58 @@
           <i class="el-icon-arrow-down"></i>
         </button>
         <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item icon="el-icon-close">关闭</el-dropdown-item>
-          <el-dropdown-item icon="el-icon-refresh-right"
+          <el-dropdown-item
+            icon="el-icon-close"
+            @click.native="closeCurrentTag"
+            :disabled="selectedTag?.fixed"
+            >关闭</el-dropdown-item
+          >
+          <el-dropdown-item
+            icon="el-icon-refresh-right"
+            @click.native="$emit('refresh-view')"
             >重新加载</el-dropdown-item
           >
           <el-dropdown-item
             @click.native="toggleFixed(selectedTag)"
-            :icon="selectedFixed ? 'el-icon-unlock' : 'el-icon-lock'"
+            :icon="selectedTag.fixed ? 'el-icon-unlock' : 'el-icon-lock'"
           >
-            {{ selectedFixed ? "取消固定" : "固定标签" }}
+            {{ selectedTag.fixed ? "取消固定" : "固定标签" }}
           </el-dropdown-item>
-          <el-dropdown-item icon="iconfont icon-yuyan"
+          <el-dropdown-item
+            icon="iconfont icon-xinchuangkoudakai"
+            @click.native="openInNewWindow"
             >在新窗口打开</el-dropdown-item
           >
-          <el-dropdown-item icon="iconfont icon-yuyan" divided
+          <el-dropdown-item
+            icon="el-icon-d-arrow-left"
+            divided
+            @click.native="tabOperation('clearLeftAll')"
             >关闭左侧标签页</el-dropdown-item
           >
-          <el-dropdown-item icon="iconfont icon-yuyan"
+          <el-dropdown-item
+            icon="el-icon-d-arrow-right"
+            @click.native="tabOperation('clearRightAll')"
             >关闭右侧标签页</el-dropdown-item
           >
-          <el-dropdown-item icon="iconfont icon-yuyan" divided
+          <el-dropdown-item
+            icon="iconfont icon-close-other"
+            divided
+            @click.native="tabOperation('clearOtherAll')"
             >关闭其他标签页</el-dropdown-item
           >
           <el-dropdown-item
-            icon="iconfont icon-yuyan"
+            icon="iconfont icon-guanbiquanbu"
             @click.native="tabOperation('clearAll')"
             >关闭全部标签页</el-dropdown-item
           >
         </el-dropdown-menu>
       </el-dropdown>
-      <button class="btn-tab">
-        <i class="iconfont icon-fangda"></i>
-        <!-- <i class="iconfont icon-suoxiao"></i> -->
+      <button class="btn-tab" @click="$emit('fangda-suoxiao')">
+        <i
+          :class="
+            isImmersive ? 'iconfont icon-suoxiao' : 'iconfont icon-fangda'
+          "
+        ></i>
       </button>
     </div>
   </el-row>
@@ -88,10 +108,8 @@ import { mapState, mapActions } from "vuex";
 export default {
   computed: {
     ...mapState("MenuStateModule", ["TabMenu"]),
-    selectedFixed() {
-      return this.selectedTag?.fixed || false;
-    },
   },
+  props: ["isImmersive"],
   data() {
     return {
       scrollLeftDisabled: true,
@@ -106,6 +124,9 @@ export default {
       "clearTabMenu",
       "toggleFixedTabMenu",
       "setCurrentMenuaddTabMenu",
+      "closeOtherTabs",
+      "closeRightTabs",
+      "closeLeftTabs",
     ]),
     // 滚动到标签容器末尾
     scrollToEnd() {
@@ -180,6 +201,7 @@ export default {
       const container = this.$refs.tagsContainer;
       container.addEventListener("scroll", this.updateScrollButtons);
     },
+    // 检查操控滚动按钮是否应该显现
     checkScrollButtons() {
       const container = this.$refs.tagsContainer;
       if (container) {
@@ -194,24 +216,34 @@ export default {
         }
       }
     },
-    //标签页操作
+    //标签页操作，关闭全部标签页
     tabOperation(type) {
       if (type === "clearAll") {
-        this.clearTabMenu();
+        this.clearTabMenu(this.$router);
+      } else if (type === "clearOtherAll") {
+        this.closeOtherTabs(this.$router);
+      } else if (type === "clearLeftAll") {
+        this.closeLeftTabs(this.$router);
+      } else if (type === "clearRightAll") {
+        this.closeRightTabs(this.$router);
       }
     },
     // 关闭标签
     handleCloseTag(tag, event) {
       event.stopPropagation(); // 阻止事件冒泡
-      // // 如果是当前激活的标签，需要特殊处理
+      // 如果是当前激活的标签，需要特殊处理
       if (this.isActiveTag(tag)) {
-        // this.closeActiveTag(tag);
-        console.log(123);
-        // this.$store.dispatch("MenuStateModule/removeTabMenu", tag.path)
+        this.$store.dispatch("MenuStateModule/removeTabMenu", {
+          path: tag.path,
+          router: this.$router,
+          if_current: true,
+        });
       } else {
-        // this.closeInactiveTag(tag);
-        console.log(456);
-        // this.$store.dispatch("MenuStateModule/removeTabMenu", tag.path)
+        this.$store.dispatch("MenuStateModule/removeTabMenu", {
+          path: tag.path,
+          router: this.$router,
+          if_current: false,
+        });
       }
     },
     //刷新初始激活
@@ -224,8 +256,25 @@ export default {
         }
       }
     },
+    // 操控是否固定
     toggleFixed(tag) {
       this.toggleFixedTabMenu(tag.path);
+    },
+    //在新窗口打开
+    openInNewWindow() {
+      if (!this.selectedTag || !this.selectedTag.path) return;
+      const url = this.$router.resolve(this.selectedTag.path).href;
+      window.open(url, "_blank");
+    },
+    //关闭当前标签
+    closeCurrentTag() {
+      if (!this.selectedTag || !this.selectedTag.path) return;
+
+      this.$store.dispatch("MenuStateModule/removeTabMenu", {
+        path: this.selectedTag.path,
+        router: this.$router,
+        if_current: this.isActiveTag(this.selectedTag),
+      });
     },
   },
   mounted() {

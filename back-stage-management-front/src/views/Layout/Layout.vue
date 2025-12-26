@@ -28,6 +28,7 @@
     <!-- 右侧菜单栏 -->
     <div class="right-side" :style="{ left: leftWidth + 'px' }">
       <Content
+        @fangda-suoxiao="toggleImmersiveMode"
         class="content"
         @changeMenu="changeMenu"
         :isCollapse="isCollapse"
@@ -59,13 +60,14 @@ export default {
       leftWidth: 200, // 初始宽度200px
       showUnlockPage: false,
       avatar,
+      isImmersive: false, // ⭐ 新增：沉浸模式
     };
   },
   computed: {
     // 数组形式 - 同名映射
     ...mapState("LockModule", ["isLocked", "LockPassword", "showSetPassword"]),
   },
-  created(){
+  created() {
     this.startSessionPing();
   },
   mounted() {
@@ -76,7 +78,6 @@ export default {
     clearInterval(this.pingTimer);
   },
   methods: {
-    
     // 模块 actions
     ...mapActions("LockModule", [
       "lock",
@@ -84,22 +85,27 @@ export default {
       "SetLockPassword",
       "setShowSetPassword",
     ]),
-    startSessionPing() {
-    this.pingTimer = setInterval(() => {
-      this.$store.dispatch("SessionModule/pingSession").then(() => {
-        if (this.$store.getters["SessionModule/isExpiringSoon"]) {
-          this.$notify({
-          title: '警告',
-          message: '登录即将过期，请保存您的操作',
-          type: 'warning',
-          // duration: 0,
-          showClose: true
-        });
+    toggleImmersiveMode() {
+      this.isImmersive = !this.isImmersive;
 
-        }
-      });
-    }, 5 * 60 * 1000); // 每5分钟轮询
-  },
+      // 隐藏左侧菜单栏
+      this.leftWidth = this.isImmersive ? 0 : this.isCollapse ? 64 : 200;
+    },
+    startSessionPing() {
+      this.pingTimer = setInterval(() => {
+        this.$store.dispatch("SessionModule/pingSession").then(() => {
+          if (this.$store.getters["SessionModule/isExpiringSoon"]) {
+            this.$notify({
+              title: "警告",
+              message: "登录即将过期，请保存您的操作",
+              type: "warning",
+              // duration: 0,
+              showClose: true,
+            });
+          }
+        });
+      }, 5 * 60 * 1000); // 每5分钟轮询
+    },
     handleKeydown(e) {
       if (e.altKey && e.key.toLowerCase() === "l") {
         if (!this.isLocked) {

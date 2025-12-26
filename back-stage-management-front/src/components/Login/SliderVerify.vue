@@ -164,6 +164,7 @@ export default {
   border-radius: 4px;
 }
 .slider-button {
+  color: black;
   position: absolute;
   top: 0;
   width: 40px;
