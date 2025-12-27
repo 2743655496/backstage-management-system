@@ -22,7 +22,7 @@
           :model="form"
           :label-width="$t('login.label_width')"
           class="login_form"
-          :class="isLightOn ? 'light-mode' : 'dark-mode'"
+          :class="!isLightOn ? 'light-mode' : 'dark-mode'"
         >
           <el-form-item :label="$t('login.username')" prop="username">
             <el-input
@@ -51,7 +51,7 @@
           <div class="remember_me_left">
             <el-checkbox
               v-model="form.remember"
-              :class="isLightOn ? 'light-mode' : 'dark-mode'"
+              :class="!isLightOn ? 'light-mode' : 'dark-mode'"
               >{{ $t("login.remember_me") }}</el-checkbox
             >
           </div>
@@ -87,7 +87,7 @@
             </div></el-col
           >
         </el-row>
-        <div :class="isLightOn ? 'divider-light-mode' : 'divider-dark-mode'">
+        <div :class="!isLightOn ? 'divider-light-mode' : 'divider-dark-mode'">
           <el-divider content-position="center">{{
             $t("login.login_else")
           }}</el-divider>
@@ -95,16 +95,16 @@
 
         <div class="social-login-container">
           <!-- Ghost 纯图标无边框按钮 -->
-          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
+          <button :class="['social-btn', !isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-github-fill"></i>
           </button>
-          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
+          <button :class="['social-btn', !isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-weixin"></i>
           </button>
-          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
+          <button :class="['social-btn', !isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-QQ"></i>
           </button>
-          <button :class="['social-btn', isLightOn ? 'ghost' : 'ghost2']">
+          <button :class="['social-btn', !isLightOn ? 'ghost' : 'ghost2']">
             <i class="iconfont icon-weibo"></i>
           </button>
         </div>
@@ -137,8 +137,8 @@ export default {
     background_color_style() {
       // 根据 isLightOn 动态计算颜色
       return {
-        backgroundColor: this.isLightOn ? "#000000" : "white",
-        color: this.isLightOn ? "white" : "black",
+        backgroundColor: !this.isLightOn ? "#000000" : "white",
+        color: !this.isLightOn ? "white" : "black",
       };
     },
   },

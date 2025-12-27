@@ -37,9 +37,16 @@
         <button class="btn-radius">
           <i class="el-icon-setting"></i>
         </button>
-        <button class="btn-radius">
-          <!-- <i class="el-icon-sunny"></i> -->
-          <i class="el-icon-moon"></i>
+        <button class="btn-radius" @click="handleClick">
+          <transition name="fade">
+            <i
+              :class="[
+                isLightOn ? 'el-icon-sunny' : 'el-icon-moon',
+                { 'reverse-spin': isSpinning && isLightOn },
+              ]"
+              key="icon"
+            ></i>
+          </transition>
         </button>
         <ButtonIconDropdown
           :iconList="languages"
@@ -82,6 +89,7 @@ import navigation from "@/utils/navigation";
 
 export default {
   computed: {
+    ...mapGetters("LightModule", ["isLightOn"]),
     ...mapGetters("LanguageModule", ["currentLanguage", "languages"]),
     ...mapState("MenuStateModule", ["CurrentMenu"]),
   },
@@ -97,6 +105,7 @@ export default {
       viewKey: 0, // 用来强制刷新 router-view
       isFullscreen: false, // 是否全屏
       isImmersive: false, // ⭐ 新增：沉浸模式
+      isSpinning: false,
     };
   },
   watch: {
@@ -135,6 +144,7 @@ export default {
     document.removeEventListener("MSFullscreenChange", this.fullscreenListener);
   },
   methods: {
+    ...mapActions("LightModule", ["toggleLight"]),
     ...mapActions("MenuStateModule", ["setCurrentMenuaddTabMenu"]),
     ...mapActions("chartRenderKey", ["triggerChartRemount"]),
     checkScreenWidth() {
@@ -181,6 +191,20 @@ export default {
         if (!this.isImmersive) {
           this.$emit("changeMenu"); // 触发父组件折叠逻辑
         }
+      }
+    },
+    //点灯开灯
+    handleClick() {
+      if (this.isLightOn) {
+        // 太阳图标触发反向旋转
+        this.isSpinning = true;
+        setTimeout(() => {
+          this.toggleLight(); // 每次点击切换 isLightOn
+          this.isSpinning = false;
+        }, 100); // 动画持续时间
+      } else {
+        // 月亮直接切换为太阳，无动画
+        this.toggleLight(); // 每次点击切换 isLightOn
       }
     },
     /**
@@ -231,6 +255,21 @@ export default {
   }
   .btn:hover {
     background-color: #f5f5f5;
+  }
+  /* 太阳反向旋转动画 */
+  .reverse-spin {
+    animation: reverseRotate 0.4s ease;
+  }
+  @keyframes reverseRotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    40% {
+      transform: rotate(40deg);
+    } /* 40% of 360° */
+    100% {
+      transform: rotate(0deg);
+    }
   }
   .btn-radius {
     margin-left: 4px;

@@ -22,7 +22,7 @@
       @back="showUnlockPage = false"
     />
     <!-- 左侧菜单栏 -->
-    <div class="left-side" :style="{ width: leftWidth + 'px' }">
+    <div class="left-side" :style="{ width: leftWidth + 'px',background:backgroundColor }">
       <MyMenu class="menu" :isCollapse="isCollapse" />
     </div>
     <!-- 右侧菜单栏 -->
@@ -42,7 +42,7 @@
 import SetPasswordModal from "@/components/LockScreen/SetPasswordModal.vue";
 import LockScreen from "@/components/LockScreen/LockScreen.vue";
 import UnlockPage from "@/components/LockScreen/UnlockPage.vue";
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 import avatar from "@/assets/images/horse.png";
 import Content from "./MyContent.vue";
 import MyMenu from "./MyMenu.vue";
@@ -66,6 +66,7 @@ export default {
   computed: {
     // 数组形式 - 同名映射
     ...mapState("LockModule", ["isLocked", "LockPassword", "showSetPassword"]),
+    ...mapGetters("LightModule", ["backgroundColor"]),
   },
   created() {
     this.startSessionPing();

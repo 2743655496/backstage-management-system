@@ -14,7 +14,7 @@
             class="logoimg"
           />
           <p style="margin-top: 10px; font-size: 16px; color: #333">
-            {{ $t('login.background_content') }}
+            {{ $t("login.background_content") }}
           </p>
         </div>
       </div>
@@ -49,9 +49,9 @@
           <transition name="fade">
             <i
               :class="[
-                isDay ? 'el-icon-sunny' : 'el-icon-moon',
+                isLightOn ? 'el-icon-sunny' : 'el-icon-moon',
                 'switch-icon',
-                { 'reverse-spin': isSpinning && isDay },
+                { 'reverse-spin': isSpinning && isLightOn },
               ]"
               @click="handleClick"
               key="icon"
@@ -95,7 +95,6 @@ export default {
     return {
       layoutMode: localStorage.getItem("layoutMode") || "right", // 初始布局
       gradientColor: localStorage.getItem("gradientColor") || "#bddff5",
-      isDay: true,
       isSpinning: false,
       current_layout_position:
         localStorage.getItem("layout_position_icon") ||
@@ -114,17 +113,16 @@ export default {
     ...mapGetters("LightModule", ["isLightOn"]),
     ...mapGetters("LanguageModule", ["currentLanguage", "languages"]),
     current_color() {
-    // 根据 isLightOn 动态计算颜色
-    return this.isLightOn ? "#000000" : "white";
-  },
+      // 根据 isLightOn 动态计算颜色
+      return this.isLightOn ? "white" : "#000000";
+    },
     backgroundStyle() {
       return {
         background: `linear-gradient(155deg, ${this.current_color}, ${this.gradientColor} 50%, ${this.current_color})`,
       };
     },
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     ...mapActions("LightModule", ["toggleLight"]),
     ...mapActions("LanguageModule", ["changeLanguage"]),
@@ -132,7 +130,7 @@ export default {
      * 切换语言
      */
     changeLang(command) {
-      console.log(command)
+      console.log(command);
       this.changeLanguage(command.name);
     },
     handleSelect(item) {
@@ -153,18 +151,17 @@ export default {
       localStorage.setItem("layoutMode", this.layoutMode); // 存储为字符串
     },
     handleClick() {
-      if (this.isDay) {
+      if (this.isLightOn) {
         // 太阳图标触发反向旋转
         this.isSpinning = true;
         setTimeout(() => {
-          this.isDay = false;
+          this.toggleLight(); // 每次点击切换 isLightOn
           this.isSpinning = false;
         }, 100); // 动画持续时间
       } else {
         // 月亮直接切换为太阳，无动画
-        this.isDay = true;
+        this.toggleLight(); // 每次点击切换 isLightOn
       }
-      this.toggleLight(); // 每次点击切换 isLightOn
     },
     handleColorSelect(color) {
       this.gradientColor = color;
@@ -334,7 +331,6 @@ body {
 
     .switch-icon {
       cursor: pointer;
-      // transition: transform 0.3s ease;
     }
 
     /* 太阳反向旋转动画 */
