@@ -66,7 +66,7 @@ export default {
   computed: {
     // 数组形式 - 同名映射
     ...mapState("LockModule", ["isLocked", "LockPassword", "showSetPassword"]),
-    ...mapGetters("LightModule", ["backgroundColor"]),
+    ...mapGetters("LightModule", ["backgroundColor","border_color"]),
   },
   created() {
     this.startSessionPing();
@@ -161,7 +161,7 @@ export default {
     transition: left 0.4s ease;
     box-sizing: border-box;
     overflow: auto;
-    border-left: 1px solid #ebeef5; /* 新增左侧边框 */
+    border-left: 1px solid v-bind(border_color); /* 新增左侧边框 */
   }
 }
 </style>

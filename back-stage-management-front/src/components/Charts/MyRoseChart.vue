@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import * as echarts from "echarts/core";
 import { ToolboxComponent, LegendComponent } from "echarts/components";
 import { PieChart } from "echarts/charts";
@@ -36,17 +37,24 @@ export default {
       ],
     },
   },
+
+  computed: {
+    ...mapGetters("LightModule", ["textColor"]),
+  },
+
   data() {
     return {
       chartInstance: null,
-      isMounted: false, // ✅ 挂载标志
+      isMounted: false,
       _resizeHandler: null,
     };
   },
+
   mounted() {
     this.isMounted = true;
-    this.safeInitChart(); // ✅ 使用封装方法
+    this.safeInitChart();
   },
+
   beforeDestroy() {
     this.isMounted = false;
     if (this._resizeHandler) {
@@ -57,84 +65,110 @@ export default {
       this.chartInstance = null;
     }
   },
+
+  watch: {
+    // Vuex 文字颜色变化 → 更新图表
+    textColor() {
+      if (this.chartInstance) {
+        this.chartInstance.setOption(this.getChartOption());
+      }
+    },
+
+    // ECharts 主题变化 → 必须重新 init
+    theme() {
+      this.reRenderChart();
+    },
+  },
+
   methods: {
     safeInitChart() {
       this.$nextTick(() => {
         setTimeout(() => {
           if (!this.isMounted) return;
+
           const container = this.$refs.chartRef;
           if (!container || container.offsetWidth === 0) return;
 
-          this.initChart(container);
+          this.chartInstance = echarts.init(container, this.theme);
+          this.chartInstance.setOption(this.getChartOption());
 
           this._resizeHandler = () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
-              this.resizeChart();
+              if (this.chartInstance) {
+                this.chartInstance.resize();
+              }
             }, 200);
           };
+
           window.addEventListener("resize", this._resizeHandler);
-        }, 300); // ✅ 延迟初始化，确保容器尺寸稳定
+        }, 300);
       });
     },
-    initChart(container) {
-      const containerWidth = container.offsetWidth;
-      const minRadius = containerWidth * 0.1;
-      const maxRadius = containerWidth * 0.3;
+
+    // 主题切换时重新渲染图表
+    reRenderChart() {
+      const container = this.$refs.chartRef;
+      if (!container) return;
+
+      if (this.chartInstance) {
+        this.chartInstance.dispose();
+      }
 
       this.chartInstance = echarts.init(container, this.theme);
-      const option = {
+      this.chartInstance.setOption(this.getChartOption());
+    },
+
+    getChartOption() {
+      const container = this.$refs.chartRef;
+      const width = container ? container.offsetWidth : 300;
+
+      const minRadius = width * 0.1;
+      const maxRadius = width * 0.3;
+
+      return {
+        tooltip: {
+          trigger: "item",
+        },
+
         legend: {
           orient: "horizontal",
           bottom: 15,
           left: "center",
+          textStyle: {
+            color: this.textColor, // 图例文字颜色
+          },
         },
+
         toolbox: {
           show: true,
           feature: {
-            mark: { show: true },
             saveAsImage: { show: true },
           },
         },
+
         series: [
           {
             name: "访问结构",
             type: "pie",
+            roseType: "area",
             radius: [minRadius, maxRadius],
             center: ["50%", "50%"],
-            roseType: "area",
+
             itemStyle: {
               borderRadius: 8,
             },
+
             label: {
               show: true,
               fontSize: 14,
+              color: this.textColor, // 标签文字颜色
             },
+
             data: this.chartData,
           },
         ],
       };
-      this.chartInstance.setOption(option);
-    },
-    resizeChart() {
-      if (this.chartInstance) {
-        const container = this.$refs.chartRef;
-        if (!container || container.offsetWidth === 0) return;
-
-        const containerWidth = container.offsetWidth;
-        const minRadius = containerWidth * 0.1;
-        const maxRadius = containerWidth * 0.35;
-
-        this.chartInstance.setOption({
-          series: [
-            {
-              radius: [minRadius, maxRadius],
-            },
-          ],
-        });
-
-        this.chartInstance.resize();
-      }
     },
   },
 };

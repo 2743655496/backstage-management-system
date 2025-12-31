@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import * as echarts from "echarts/core";
 import { GridComponent } from "echarts/components";
 import { BarChart } from "echarts/charts";
@@ -20,17 +21,24 @@ export default {
       default: "light",
     },
   },
+
+  computed: {
+    ...mapGetters("LightModule", ["textColor"]),
+  },
+
   data() {
     return {
       chartInstance: null,
-      isMounted: false, // ✅ 挂载标志
+      isMounted: false,
       _resizeHandler: null,
     };
   },
+
   mounted() {
     this.isMounted = true;
-    this.safeInitChart(); // ✅ 使用封装方法
+    this.safeInitChart();
   },
+
   beforeDestroy() {
     this.isMounted = false;
     if (this._resizeHandler) {
@@ -41,6 +49,21 @@ export default {
       this.chartInstance = null;
     }
   },
+
+  watch: {
+    // Vuex 文字颜色变化 → 更新图表
+    textColor() {
+      if (this.chartInstance) {
+        this.chartInstance.setOption(this.getChartOption());
+      }
+    },
+
+    // ECharts 主题变化 → 必须重新 init
+    theme() {
+      this.reRenderChart();
+    },
+  },
+
   methods: {
     safeInitChart() {
       this.$nextTick(() => {
@@ -61,9 +84,23 @@ export default {
             }, 200);
           };
           window.addEventListener("resize", this._resizeHandler);
-        }, 300); // ✅ 延迟初始化，确保容器尺寸稳定
+        }, 300);
       });
     },
+
+    // 主题切换时重新渲染图表
+    reRenderChart() {
+      const container = this.$refs.chartRef;
+      if (!container) return;
+
+      if (this.chartInstance) {
+        this.chartInstance.dispose();
+      }
+
+      this.chartInstance = echarts.init(container, this.theme);
+      this.chartInstance.setOption(this.getChartOption());
+    },
+
     getChartOption() {
       return {
         toolbox: {
@@ -79,6 +116,9 @@ export default {
         },
         xAxis: {
           type: "category",
+          axisLabel: {
+            color: this.textColor, // ← 坐标轴文字颜色
+          },
           data: [
             "1月", "2月", "3月", "4月", "5月", "6月",
             "7月", "8月", "9月", "10月", "11月", "12月",
@@ -86,11 +126,19 @@ export default {
         },
         yAxis: {
           type: "value",
+          axisLabel: {
+            color: this.textColor, // ← 坐标轴文字颜色
+          },
         },
         series: [
           {
             data: [120, 200, 150, 80, 70, 110, 130, 160, 180, 140, 100, 90],
             type: "bar",
+            label: {
+              show: true,
+              position: "top",
+              color: this.textColor, // ← 柱状图顶部文字颜色
+            },
           },
         ],
       };

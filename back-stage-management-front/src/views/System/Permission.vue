@@ -18,14 +18,21 @@
           :height="tableHeight"
           row-key="id"
           border
-          stripe
           :tree-props="{ children: 'children' }"
+          @cell-mouse-enter="onCellEnter"
+          @cell-mouse-leave="onCellLeave"
           :row-class-name="rowClassName"
         >
-          <!-- ✅ 固定第一列 -->
-          <el-table-column prop="name" label="权限名称" width="200" fixed />
+          <!-- ✅ 左侧固定列 -->
+          <el-table-column 
+            prop="name" 
+            label="权限名称" 
+            width="200" 
+            fixed="left" 
+          />
 
-          <el-table-column prop="code" label="权限标识" />
+          <!-- 中间普通列 -->
+          <el-table-column prop="code" label="权限标识" width="200" />
           <el-table-column prop="type" label="类型" width="100" align="center">
             <template slot-scope="scope">
               <el-tag :type="typeTag(scope.row.type)">
@@ -36,11 +43,11 @@
           <el-table-column
             prop="api_method"
             label="接口方法"
-            width="80"
+            width="100"
             align="center"
           />
-          <el-table-column prop="api_path" label="接口路径" />
-          <el-table-column prop="description" label="描述" />
+          <el-table-column prop="api_path" label="接口路径" width="250" />
+          <el-table-column prop="description" label="描述" width="200" />
           <el-table-column
             prop="creator.username"
             label="创建人"
@@ -60,7 +67,7 @@
             </template>
           </el-table-column>
 
-          <!-- ✅ 固定最后一列 -->
+          <!-- ✅ 右侧固定列 -->
           <el-table-column
             label="操作"
             width="180"
@@ -108,42 +115,92 @@ import {
   getPermissions,
   toDeletePermission,
 } from "@/api/modules/System/permission";
+import { mapGetters } from "vuex";
 
 export default {
   components: { PermissionForm },
+  
+  computed: {
+    ...mapGetters("LightModule", [
+      "subBackgroundColor",
+      "tableBackgroundColor",
+      "tableTextColor",
+      "tableHeaderBackgroundColor",
+      "tableHeaderTextColor",
+      "tableRowHoverBackgroundColor",
+    ]),
+  },
+
   data() {
     return {
       tableHeight: 500,
       formVisible: false,
       currentPermission: null,
       permissionTree: [],
-      resizeTimer: null, // 防抖计时器
+      resizeTimer: null,
+      
+      // ⭐ 记录 hover 行
+      hoverRowId: null,
     };
   },
+  
   created() {
     this.fetchPermissions();
   },
+  
   mounted() {
     this.$nextTick(() => {
       this.updateTableHeight();
       window.addEventListener("resize", this.handleResize);
     });
   },
+  
   beforeDestroy() {
     window.removeEventListener("resize", this.handleResize);
-    if (this.resizeTimer) {
-      clearTimeout(this.resizeTimer);
-    }
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
   },
+  
   methods: {
-    // 防抖的 resize 处理
-    handleResize() {
-      if (this.resizeTimer) {
-        clearTimeout(this.resizeTimer);
+    /* -------------------------
+     *  ⭐ Hover 行同步逻辑
+     * ------------------------- */
+    onCellEnter(row) {
+      this.hoverRowId = row.id;
+    },
+    
+    onCellLeave() {
+      this.hoverRowId = null;
+    },
+    
+    rowClassName({ row }) {
+      const classes = [];
+      
+      // 添加 hover 类
+      if (row.id === this.hoverRowId) {
+        classes.push("row-hover");
       }
+      
+      // 按钮类型权限特殊样式
+      if (row.type === 3) {
+        classes.push("row-button");
+      }
+      
+      // 接口类型权限特殊样式
+      if (row.type === 2) {
+        classes.push("row-api");
+      }
+      
+      return classes.join(" ");
+    },
+
+    /* -------------------------
+     *  其他方法
+     * ------------------------- */
+    handleResize() {
+      if (this.resizeTimer) clearTimeout(this.resizeTimer);
       this.resizeTimer = setTimeout(() => {
         this.updateTableHeight();
-      }, 150); // 150ms 防抖延迟
+      }, 150);
     },
 
     updateTableHeight() {
@@ -160,7 +217,7 @@ export default {
           cardHeight - headerHeight - marginBottom - paddingFix;
       }
     },
-
+    
     fetchPermissions() {
       getPermissions()
         .then((res) => {
@@ -168,10 +225,12 @@ export default {
         })
         .catch(() => {});
     },
+    
     openForm(row = null) {
       this.currentPermission = row ? { ...row } : null;
       this.formVisible = true;
     },
+    
     addChild(parentRow) {
       this.currentPermission = {
         parent_id: parentRow.id,
@@ -185,10 +244,12 @@ export default {
       };
       this.formVisible = true;
     },
+    
     editRow(row) {
       this.currentPermission = { ...row };
       this.formVisible = true;
     },
+    
     deleteRow(row) {
       this.$confirm(`确定删除权限 ${row.name} 吗？`, "提示", {
         type: "warning",
@@ -203,13 +264,9 @@ export default {
               this.$message.error(err.response?.data?.error || "权限删除失败");
             });
         })
-        .catch(() => {
-          // 用户取消删除
-        });
+        .catch(() => {});
     },
-    rowClassName({ row }) {
-      return row.type === 3 ? "row-button" : "";
-    },
+    
     typeLabel(type) {
       return (
         {
@@ -219,6 +276,7 @@ export default {
         }[type] || "未知"
       );
     },
+    
     typeTag(type) {
       return (
         {
@@ -239,7 +297,6 @@ export default {
   flex: 1;
   min-height: 0;
   height: 100%;
-  background-color: #f9f9f9;
   overflow: hidden;
 
   .card {
@@ -247,6 +304,9 @@ export default {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    background: v-bind(subBackgroundColor);
+    border: none;
+    transition: none !important;
 
     .header {
       display: flex;
@@ -260,30 +320,136 @@ export default {
       min-height: 0;
       overflow: auto;
 
+      /* 表格背景 */
       ::v-deep .el-table {
+        background-color: v-bind(tableBackgroundColor);
+        color: v-bind(tableTextColor);
         width: 100%;
       }
 
-      // ::v-deep .el-table__body-wrapper {
-      //   overflow: auto;
-      // }
+      /* 表头 */
+      ::v-deep .el-table__header th {
+        background-color: v-bind(tableHeaderBackgroundColor) !important;
+        color: v-bind(tableHeaderTextColor) !important;
+      }
 
-      // ::v-deep .el-table__body-wrapper::-webkit-scrollbar {
-      //   width: 8px;
-      // }
+      /* 行背景 */
+      ::v-deep .el-table__row {
+        background-color: v-bind(tableBackgroundColor) !important;
+      }
 
-      // ::v-deep .el-table__body-wrapper::-webkit-scrollbar-thumb {
-      //   background-color: #bbb;
-      //   border-radius: 4px;
-      // }
+      /* 单元格字体颜色 */
+      ::v-deep .el-table__row td {
+        color: v-bind(tableTextColor) !important;
+      }
 
-      // ::v-deep .el-table__body-wrapper::-webkit-scrollbar-track {
-      //   background-color: #f5f5f5;
-      // }
+      /* -----------------------------
+       * ⭐ 统一 hover 行（主表格 + 左固定列 + 右固定列）
+       * ----------------------------- */
+      ::v-deep .row-hover > td {
+        background-color: v-bind(tableRowHoverBackgroundColor) !important;
+      }
 
-      // ::v-deep .el-table__body-wrapper::-webkit-scrollbar:horizontal {
-      //   height: 8px;
-      // }
+      ::v-deep .el-table__fixed .row-hover > td {
+        background-color: v-bind(tableRowHoverBackgroundColor) !important;
+      }
+
+      ::v-deep .el-table__fixed-right .row-hover > td {
+        background-color: v-bind(tableRowHoverBackgroundColor) !important;
+      }
+      
+      /* -----------------------------
+       * ⭐ 按钮类型权限的特殊样式（type=3）
+       * ----------------------------- */
+      ::v-deep .row-button > td {
+        background-color: rgba(103, 194, 58, 0.05) !important;
+        
+        &:hover {
+          background-color: rgba(103, 194, 58, 0.1) !important;
+        }
+      }
+      
+      ::v-deep .el-table__fixed .row-button > td,
+      ::v-deep .el-table__fixed-right .row-button > td {
+        background-color: rgba(103, 194, 58, 0.05) !important;
+        
+        &:hover {
+          background-color: rgba(103, 194, 58, 0.1) !important;
+        }
+      }
+      
+      /* 按钮类型权限且悬停时的样式 */
+      ::v-deep .row-button.row-hover > td {
+        background-color: rgba(103, 194, 58, 0.15) !important;
+      }
+      
+      ::v-deep .el-table__fixed .row-button.row-hover > td,
+      ::v-deep .el-table__fixed-right .row-button.row-hover > td {
+        background-color: rgba(103, 194, 58, 0.15) !important;
+      }
+      
+      /* -----------------------------
+       * ⭐ 接口类型权限的特殊样式（type=2）
+       * ----------------------------- */
+      ::v-deep .row-api > td {
+        background-color: rgba(230, 162, 60, 0.05) !important;
+        
+        &:hover {
+          background-color: rgba(230, 162, 60, 0.1) !important;
+        }
+      }
+      
+      ::v-deep .el-table__fixed .row-api > td,
+      ::v-deep .el-table__fixed-right .row-api > td {
+        background-color: rgba(230, 162, 60, 0.05) !important;
+        
+        &:hover {
+          background-color: rgba(230, 162, 60, 0.1) !important;
+        }
+      }
+      
+      /* 接口类型权限且悬停时的样式 */
+      ::v-deep .row-api.row-hover > td {
+        background-color: rgba(230, 162, 60, 0.15) !important;
+      }
+      
+      ::v-deep .el-table__fixed .row-api.row-hover > td,
+      ::v-deep .el-table__fixed-right .row-api.row-hover > td {
+        background-color: rgba(230, 162, 60, 0.15) !important;
+      }
+      
+      /* 操作按钮样式调整 */
+      ::v-deep .el-table__row .el-button--text {
+        color: v-bind(tableTextColor);
+        
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+      
+      /* Tag标签颜色适配 */
+      ::v-deep .el-tag {
+        &.el-tag--primary {
+          background-color: rgba(64, 158, 255, 0.1);
+          border-color: rgba(64, 158, 255, 0.2);
+          color: #409eff;
+        }
+        &.el-tag--warning {
+          background-color: rgba(230, 162, 60, 0.1);
+          border-color: rgba(230, 162, 60, 0.2);
+          color: #e6a23c;
+        }
+        &.el-tag--success {
+          background-color: rgba(103, 194, 58, 0.1);
+          border-color: rgba(103, 194, 58, 0.2);
+          color: #67c23a;
+        }
+        &.el-tag--danger {
+          background-color: rgba(245, 108, 108, 0.1);
+          border-color: rgba(245, 108, 108, 0.2);
+          color: #f56c6c;
+        }
+      }
     }
   }
 }

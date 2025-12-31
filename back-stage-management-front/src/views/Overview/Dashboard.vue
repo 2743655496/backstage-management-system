@@ -25,6 +25,10 @@
             :activeTab="activeTab"
             @update:activeTab="activeTab = $event"
             @tab-change="handleTabChange"
+            :backgroundColor="tabSwitcherBgColor"
+            :activeTextColor="tabSwitcherActiveTextColor"
+            :textColor="tabSwitcherTextColor"
+            :activeBackgroundColor="tabSwitcherActiveBgColor"
           />
         </div>
 
@@ -76,7 +80,7 @@ import BarChart from "@/components/Charts/MyBarChart.vue";
 import RadarChart from "@/components/Charts/MyRadarChart.vue";
 import PieChart from "@/components/Charts/MyPieChart.vue";
 import RoseChart from "@/components/Charts/MyRoseChart.vue";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 export default {
   name: "AnalysisDashboard",
   components: {
@@ -89,6 +93,17 @@ export default {
   },
   computed: {
     ...mapState("chartRenderKey", ["chartRenderKey"]),
+    ...mapGetters("LightModule", [
+      "subBackgroundColor",
+      "textColor",
+      "cardTitleColor",
+      "cardValueColor",
+      "cardSubtitleColor",
+      "tabSwitcherBgColor",
+      "tabSwitcherTextColor",
+      "tabSwitcherActiveTextColor",
+      "tabSwitcherActiveBgColor",
+    ]),
   },
   data() {
     return {
@@ -153,7 +168,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background: #f5f7fa;
   font-family: "Helvetica Neue", sans-serif;
   overflow: hidden;
 }
@@ -178,12 +192,12 @@ export default {
 
 /* 格子样式 */
 .grid-box {
-  background: white;
+  background: v-bind(subBackgroundColor);
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   flex-direction: column;
   font-weight: bold;
-  color: #2c3e50;
+  color: v-bind(textColor);
   padding: 20px;
 
   min-width: 0; // ✅ 防止内容撑开 grid 单元格
@@ -199,7 +213,7 @@ export default {
 /* 指标样式 */
 /* 第一行卡片样式（替代 grid-box） */
 .metric-card {
-  background: white;
+  background: v-bind(subBackgroundColor);
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -236,19 +250,19 @@ export default {
 
 .card-title {
   font-size: 16px;
-  color: #7f8c8d;
+  color: v-bind(cardTitleColor);
 }
 
 .card-value {
   font-size: 28px;
   font-weight: bold;
-  color: #2c3e50;
+  color: v-bind(cardValueColor);
   margin: 6px 0;
 }
 
 .card-subtitle {
   font-size: 14px;
-  color: #95a5a6;
+  color: v-bind(cardSubtitleColor);
 }
 
 /* 图表占位符 */

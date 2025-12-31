@@ -53,6 +53,9 @@
           triggerIconClass="iconfont icon-yuyan"
           :selectedIcon="currentLanguage"
           @select="changeLang"
+          :backgroundColor="backgroundColor"
+          :textColor="textColor"
+          :hoverColor="buttonHoverColor"
         />
         <button class="btn-radius" @click="toggleFullscreen">
           <i
@@ -92,6 +95,14 @@ export default {
     ...mapGetters("LightModule", ["isLightOn"]),
     ...mapGetters("LanguageModule", ["currentLanguage", "languages"]),
     ...mapState("MenuStateModule", ["CurrentMenu"]),
+    ...mapGetters("LightModule", [
+      "backgroundColor",
+      "textColor",
+      "buttonHoverColor",
+      "el_breadcrumb_color",
+      "el_breadcrumb_last_color",
+      "mainBackgroundColor"
+    ]),
   },
   components: {
     Tabs,
@@ -246,15 +257,15 @@ export default {
   .btn {
     margin-left: 4px;
     padding: 8px 8px;
-    background-color: #fff;
-    color: #333;
+    background-color: v-bind(backgroundColor);
+    color: v-bind(textColor);
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-size: 17px;
   }
   .btn:hover {
-    background-color: #f5f5f5;
+    background-color: v-bind(buttonHoverColor);
   }
   /* 太阳反向旋转动画 */
   .reverse-spin {
@@ -274,15 +285,15 @@ export default {
   .btn-radius {
     margin-left: 4px;
     padding: 8px 8px;
-    background-color: #fff;
-    color: #333;
+    background-color: v-bind(backgroundColor);
+    color: v-bind(textColor);
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-size: 17px;
   }
   .btn-radius:hover {
-    background-color: #f5f5f5;
+    background-color: v-bind(buttonHoverColor);
   }
 
   ::v-deep(.el-header) {
@@ -297,7 +308,7 @@ export default {
     }
     .rowone {
       height: 50px;
-      background-color: #fff;
+      background-color: v-bind(backgroundColor);
       display: flex;
       align-items: center; /* 垂直居中 */
       ::v-deep .el-breadcrumb__inner.is-link {
@@ -319,6 +330,7 @@ export default {
       }
 
       .icon-el-breadcrumb {
+        
         font-family: -apple-system, blinkmacsystemfont, "Segoe UI", roboto,
           "Helvetica Neue", arial, "Noto Sans", sans-serif, "Apple Color Emoji",
           "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -327,7 +339,7 @@ export default {
         margin-left: 9px;
         // 所有项默认浅灰色
         ::v-deep .el-breadcrumb__item .el-breadcrumb__inner {
-          color: #909399;
+          color: v-bind(el_breadcrumb_color);
           font-weight: 400;
           transition: color 0.2s ease;
         }
@@ -336,14 +348,14 @@ export default {
         ::v-deep
           .el-breadcrumb__item:not(:last-child):hover
           .el-breadcrumb__inner {
-          color: #303133;
+          color: v-bind(el_breadcrumb_last_color);
           font-weight: 450;
           cursor: pointer;
         }
 
         // ✅ 最后一项始终为深色
         ::v-deep .el-breadcrumb__item:last-child .el-breadcrumb__inner {
-          color: #303133;
+          color: v-bind(el_breadcrumb_last_color);
           font-weight: 500;
           cursor: default;
         }
@@ -360,7 +372,7 @@ export default {
     }
   }
   .el-main {
-    background-color: #f5f7fa;
+    background-color: v-bind(mainBackgroundColor);
     display: block;
     flex: 1;
     flex-basis: auto;

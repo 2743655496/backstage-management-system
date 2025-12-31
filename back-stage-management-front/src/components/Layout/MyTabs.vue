@@ -16,7 +16,7 @@
         v-for="tag in TabMenu"
         :key="tag.name"
         :closable="!tag.fixed"
-        :type="tag.type"
+        :type="isLightOn ? '' : 'info'"
         :class="['el-tag-my', { active: isActiveTag(tag) }]"
         @click="selectTag(tag)"
         @close="handleCloseTag(tag, $event)"
@@ -104,10 +104,19 @@
 
 <script>
 import navigation from "@/utils/navigation";
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 export default {
   computed: {
     ...mapState("MenuStateModule", ["TabMenu"]),
+    ...mapGetters("LightModule", [
+      "backgroundColor",
+      "textColor",
+      "buttonHoverColor",
+      "border_color",
+      "tab_boder_color",
+      "tab_background_color",
+      "isLightOn",
+    ]),
   },
   props: ["isImmersive"],
   data() {
@@ -309,11 +318,14 @@ export default {
 
 <style lang="less" scoped>
 .rowtwo {
-  border: 1px solid #ebeef5; /* 新增左侧边框 */
+  border-left: none;
+  border-top: 1px solid v-bind(border_color);
+  border-bottom: 1px solid v-bind(border_color);
+  border-right: none;
   display: flex;
   align-items: center;
   height: 34px;
-  background: #f5f7fa;
+  background-color: v-bind(backgroundColor);
   overflow: hidden; // 隐藏溢出的内容
 
   .tags-container {
@@ -332,10 +344,18 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
       cursor: pointer;
+      background-color: v-bind(tab_background_color);
+      border: 1px solid v-bind(border_color);
 
       &.active {
-        border-color: #409eff;
-        background-color: #ecf5ff;
+        border-color: v-bind(tab_boder_color);
+        color: v-bind(tab_boder_color);
+        /deep/ .el-tag__close {
+          color: v-bind(tab_boder_color); // 激活状态下的关闭按钮颜色
+          &:hover {
+            color: white;
+          }
+        }
       }
     }
   }
@@ -361,14 +381,18 @@ export default {
     margin-left: auto;
     .btn-tab {
       padding: 9px 9px;
-      background-color: #fff;
-      color: #333;
-      border: none;
+      background-color: v-bind(backgroundColor);
+      color: v-bind(textColor);
+      border-left: 1px solid v-bind(border_color);
+      border-top: none;
+      border-bottom: none;
+      border-right: none;
+
       cursor: pointer;
       font-size: 17px;
     }
     .btn-tab:hover {
-      background-color: #f5f5f5;
+      background-color: v-bind(buttonHoverColor);
     }
   }
 }

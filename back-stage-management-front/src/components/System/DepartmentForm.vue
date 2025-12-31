@@ -151,7 +151,7 @@ export default {
               sort: 0,
               status: 1,
             };
-        
+
         // ✅ 当部门数据变化时也清除验证状态
         this.$nextTick(() => {
           if (this.$refs.form) {
@@ -240,7 +240,7 @@ export default {
           this.$refs.form.clearValidate();
         });
       }
-      
+
       // ✅ 设置表单默认值
       this.form =
         this.department && this.department.id

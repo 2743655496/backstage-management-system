@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import * as echarts from "echarts/core";
 import {
   TitleComponent,
@@ -36,17 +37,24 @@ export default {
       default: "light",
     },
   },
+
+  computed: {
+    ...mapGetters("LightModule", ["textColor"]),
+  },
+
   data() {
     return {
       chartInstance: null,
-      isMounted: false, // ✅ 挂载标志
+      isMounted: false,
       _resizeHandler: null,
     };
   },
+
   mounted() {
     this.isMounted = true;
     this.safeInitChart();
   },
+
   beforeDestroy() {
     this.isMounted = false;
     if (this._resizeHandler) {
@@ -57,29 +65,57 @@ export default {
       this.chartInstance = null;
     }
   },
+
+  watch: {
+    // 主题颜色变化 → 重新 setOption
+    textColor() {
+      if (this.chartInstance) {
+        this.chartInstance.setOption(this.getChartOption());
+      }
+    },
+
+    // ECharts 主题变化 → 必须重新 init
+    theme() {
+      this.reRenderChart();
+    },
+  },
+
   methods: {
     safeInitChart() {
-  this.$nextTick(() => {
-    setTimeout(() => {
-      if (!this.isMounted) return;
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (!this.isMounted) return;
+          const container = this.$refs.chartRef;
+          if (!container || container.offsetWidth === 0) return;
+
+          this.chartInstance = echarts.init(container, this.theme);
+          this.chartInstance.setOption(this.getChartOption());
+
+          this._resizeHandler = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              if (this.chartInstance) {
+                this.chartInstance.resize();
+              }
+            }, 200);
+          };
+          window.addEventListener("resize", this._resizeHandler);
+        }, 300);
+      });
+    },
+
+    // 主题切换时重新渲染图表
+    reRenderChart() {
       const container = this.$refs.chartRef;
-      if (!container || container.offsetWidth === 0) return;
+      if (!container) return;
+
+      if (this.chartInstance) {
+        this.chartInstance.dispose();
+      }
 
       this.chartInstance = echarts.init(container, this.theme);
       this.chartInstance.setOption(this.getChartOption());
-
-      this._resizeHandler = () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          if (this.chartInstance) {
-            this.chartInstance.resize();
-          }
-        }, 200);
-      };
-      window.addEventListener("resize", this._resizeHandler);
-    }, 300); // ✅ 延迟 300ms 等待容器宽度稳定
-  });
-},
+    },
 
     getChartOption() {
       return {
@@ -89,6 +125,7 @@ export default {
           top: "60px",
           bottom: "60px",
         },
+
         tooltip: {
           trigger: "axis",
           axisPointer: {
@@ -98,26 +135,34 @@ export default {
             },
           },
         },
+
         legend: {
           data: ["Email", "Union Ads", "Video Ads", "Direct", "Search Engine"],
+          textStyle: { color: this.textColor },
         },
+
         toolbox: {
           feature: {
             saveAsImage: {},
           },
         },
+
         xAxis: [
           {
             type: "category",
             boundaryGap: false,
+            axisLabel: { color: this.textColor },
             data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
           },
         ],
+
         yAxis: [
           {
             type: "value",
+            axisLabel: { color: this.textColor },
           },
         ],
+
         series: [
           {
             name: "Email",
@@ -158,6 +203,7 @@ export default {
             label: {
               show: true,
               position: "top",
+              color: this.textColor,
             },
             areaStyle: {},
             emphasis: { focus: "series" },

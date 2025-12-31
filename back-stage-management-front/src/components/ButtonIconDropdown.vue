@@ -33,6 +33,18 @@ export default {
       type: String,
       required: true,
     },
+    backgroundColor: {
+      type: String,
+      default: "white",
+    },
+    textColor: {
+      type: String,
+      default: "#000000",
+    },
+    hoverColor: {
+      type: String,
+      default: "#f5f5f5",
+    },
     selectedIcon: {
       type: String,
       required: true,
@@ -87,19 +99,18 @@ export default {
 .btn-radius {
   margin-left: 4px;
   padding: 8px 8px;
-  background-color: #fff;
-  color: #333;
+  background-color: v-bind(backgroundColor);
+  color: v-bind(textColor);
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 17px;
 }
 .btn-radius:hover {
-  background-color: #f5f5f5;
+  background-color: v-bind(hoverColor);
 }
 .trigger-icon {
   cursor: pointer;
-  color: #666;
   transition: color 0.3s ease, transform 0.3s ease;
 }
 /* .trigger-icon:hover {

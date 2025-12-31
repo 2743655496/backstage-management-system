@@ -2,7 +2,7 @@
   <div class="user-page">
     <!-- 搜索区域 -->
     <div class="search-section" v-show="showSearchArea">
-      <el-card>
+      <el-card class="search-card">
         <!-- 屏幕 > 1220px 时的布局 -->
         <div
           class="large-screen-layout"
@@ -405,8 +405,10 @@
             :data="userList"
             :height="tableHeight"
             border
-            stripe
             row-key="id"
+            @cell-mouse-enter="onCellEnter"
+            @cell-mouse-leave="onCellLeave"
+            :row-class-name="rowClassName"
           >
             <!-- 新增头像列 -->
             <el-table-column label="头像" width="80" align="center">
@@ -437,7 +439,12 @@
               </template>
             </el-table-column>
 
-            <el-table-column prop="username" label="用户名" width="120" fixed />
+            <el-table-column
+              prop="username"
+              label="用户名"
+              width="120"
+              fixed="left"
+            />
             <el-table-column prop="id" label="用户ID" width="80" />
             <el-table-column prop="real_name" label="真实姓名" width="100" />
             <el-table-column prop="email" label="邮箱" width="180" />
@@ -510,17 +517,13 @@
               fixed="right"
             >
               <template slot-scope="scope">
-                <el-button type="text" size="small" @click="editRow(scope.row)"
-                  >编辑</el-button
-                >
-                <!-- <el-button
-                  v-if="scope.row.status === 0"
+                <el-button
                   type="text"
                   size="small"
                   style="color: #67c23a"
-                  @click="enableUser(scope.row)"
-                  >启用</el-button
-                > -->
+                  @click="editRow(scope.row)"
+                  >编辑</el-button
+                >
                 <el-button
                   type="text"
                   size="small"
@@ -558,10 +561,9 @@ import {
   getUsers,
   toDeleteUser,
   toEnableUser,
-  toDisableUser,
 } from "@/api/modules/System/user";
 import { TimeFormatter } from "@/utils/timeFormatter";
-import { time } from "echarts/core";
+import { mapGetters } from "vuex";
 
 export default {
   name: "User",
@@ -569,16 +571,27 @@ export default {
     UserForm,
     MyPagination,
   },
+
+  computed: {
+    ...mapGetters("LightModule", [
+      "textColor",
+      "subBackgroundColor",
+      "tableBackgroundColor",
+      "tableTextColor",
+      "tableHeaderBackgroundColor",
+      "tableHeaderTextColor",
+      "tableRowHoverBackgroundColor",
+    ]),
+  },
+
   data() {
     return {
       tableHeight: 500,
       showSearch: true,
       isMediumScreen: false,
       isSmallScreen: false,
-      // 新增：控制搜索区域显示/隐藏
       showSearchArea: true,
-      // 默认头像
-      defaultAvatar: require("@/assets/images/horse.png"), // 需要准备一个默认头像图片
+      defaultAvatar: require("@/assets/images/horse.png"),
 
       searchForm: {
         username: "",
@@ -592,50 +605,78 @@ export default {
       formVisible: false,
       currentUserId: null,
       screenResizeTimer: null,
-      // 分页数据
       pagination: {
         total: 0,
-        pageSize: 5,
+        pageSize: 10,
         currentPage: 1,
       },
-      // 搜索状态标识
       isSearching: false,
-      // 缓存搜索条件
       cachedSearchParams: {},
-      // 角色标签类型映射
       roleTagTypes: ["", "success", "info", "warning", "danger"],
+
+      // ⭐ 记录 hover 行
+      hoverRowId: null,
     };
   },
+
   created() {
     this.fetchUsers();
     this.checkScreenSize();
   },
+
   mounted() {
     this.$nextTick(() => {
       this.updateTableHeight();
-      // window.addEventListener("resize", this.handleResize);
       window.addEventListener("resize", this.handleScreenResize);
     });
   },
+
   beforeDestroy() {
-    // window.removeEventListener("resize", this.handleResize);
     window.removeEventListener("resize", this.handleScreenResize);
 
     if (this.screenResizeTimer) {
       clearTimeout(this.screenResizeTimer);
     }
   },
+
   methods: {
-    // 获取角色标签类型
+    /* -------------------------
+     *  ⭐ Hover 行同步逻辑
+     * ------------------------- */
+    onCellEnter(row) {
+      this.hoverRowId = row.id;
+    },
+
+    onCellLeave() {
+      this.hoverRowId = null;
+    },
+
+    rowClassName({ row }) {
+      const classes = [];
+
+      // 添加 hover 类
+      if (row.id === this.hoverRowId) {
+        classes.push("row-hover");
+      }
+
+      // 禁用状态的特殊样式
+      if (row.status === 0) {
+        classes.push("row-disabled");
+      }
+
+      return classes.join(" ");
+    },
+
+    /* -------------------------
+     *  其他方法
+     * ------------------------- */
     getRoleTagType(roleId) {
       const types = ["", "success", "info", "warning", "danger"];
       return types[roleId % types.length] || "";
     },
 
-    // 新增：切换搜索区域显示/隐藏
     toggleSearchArea() {
       this.showSearchArea = !this.showSearchArea;
-      this.pagination.pageSize = 10;
       this.$nextTick(() => {
         setTimeout(() => {
           this.updateTableHeight();
@@ -643,19 +684,18 @@ export default {
       });
       this.fetchUsers();
     },
+
     formatDateTime(time) {
       if (!time) return "";
       return TimeFormatter.formatFull(time, { useUTC: true });
     },
 
-    // 检查屏幕尺寸
     checkScreenSize() {
       const width = window.innerWidth;
       this.isSmallScreen = width < 768;
       this.isMediumScreen = width >= 768 && width <= 1220;
     },
 
-    // 屏幕尺寸变化处理
     handleScreenResize() {
       if (this.screenResizeTimer) {
         clearTimeout(this.screenResizeTimer);
@@ -667,6 +707,7 @@ export default {
         });
       }, 150);
     },
+
     updateTableHeight() {
       const cardEl = this.$el.querySelector(".card");
       const headerEl = cardEl.querySelector(".header");
@@ -692,7 +733,6 @@ export default {
       });
     },
 
-    // 搜索处理
     handleSearch() {
       this.isSearching = true;
       this.pagination.currentPage = 1;
@@ -700,7 +740,6 @@ export default {
       this.fetchUsers();
     },
 
-    // 获取用户列表
     async fetchUsers() {
       try {
         let params = {
@@ -727,7 +766,6 @@ export default {
       }
     },
 
-    // 构建搜索参数
     buildSearchParams() {
       const params = {};
 
@@ -761,7 +799,6 @@ export default {
       return params;
     },
 
-    // 重置搜索
     resetSearch() {
       this.searchForm = {
         username: "",
@@ -777,7 +814,6 @@ export default {
       this.fetchUsers();
     },
 
-    // 分页变化处理
     handlePageChange(page) {
       this.pagination.currentPage = page;
       this.fetchUsers();
@@ -829,12 +865,26 @@ export default {
   flex: 1;
   min-height: 0;
   height: 100%;
-  background-color: #f9f9f9;
   overflow: hidden;
 
   .search-section {
     margin-bottom: 20px;
     flex-shrink: 0;
+
+    .search-card {
+      border: none;
+      transition: none !important;
+      background: v-bind(subBackgroundColor);
+      .form-item .label {
+        flex-shrink: 0;
+        font-size: 14px;
+        color: v-bind(textColor);
+        line-height: 32px;
+        width: 80px;
+        text-align: right;
+        padding-right: 12px;
+      }
+    }
 
     ::v-deep .el-card .el-card__body {
       padding: 20px;
@@ -850,7 +900,7 @@ export default {
       .label {
         flex-shrink: 0;
         font-size: 14px;
-        color: #606266;
+        color: #606266; /* 保持原样 */
         line-height: 32px;
         width: 80px;
         text-align: right;
@@ -896,12 +946,17 @@ export default {
       display: flex;
       flex-direction: column;
       min-height: 0;
+      background: v-bind(subBackgroundColor);
+      border: none;
+      transition: none !important;
 
       .header {
         display: flex;
         justify-content: flex-end;
         margin-bottom: 10px;
         flex-shrink: 0;
+        align-items: center;
+        gap: 10px;
       }
 
       .table-wrapper {
@@ -909,7 +964,10 @@ export default {
         min-height: 0;
         overflow: auto;
 
+        /* 表格背景 */
         ::v-deep .el-table {
+          background-color: v-bind(tableBackgroundColor);
+          color: v-bind(tableTextColor);
           width: 100%;
 
           // 头像单元格样式
@@ -920,8 +978,8 @@ export default {
             height: 60px;
 
             .user-avatar {
-              border: 1px solid #ebeef5;
-              background-color: white;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              background-color: rgba(255, 255, 255, 0.05);
             }
           }
 
@@ -937,9 +995,97 @@ export default {
             }
 
             .no-roles {
-              color: #909399;
+              color: v-bind(tableTextColor);
+              opacity: 0.6;
               font-size: 12px;
             }
+          }
+        }
+
+        /* 表头 */
+        ::v-deep .el-table__header th {
+          background-color: v-bind(tableHeaderBackgroundColor) !important;
+          color: v-bind(tableHeaderTextColor) !important;
+        }
+
+        /* 行背景 */
+        ::v-deep .el-table__row {
+          background-color: v-bind(tableBackgroundColor) !important;
+        }
+
+        /* 单元格字体颜色 */
+        ::v-deep .el-table__row td {
+          color: v-bind(tableTextColor) !important;
+        }
+
+        /* -----------------------------
+         * ⭐ 统一 hover 行（主表格 + 左固定列 + 右固定列）
+         * ----------------------------- */
+        ::v-deep .row-hover > td {
+          background-color: v-bind(tableRowHoverBackgroundColor) !important;
+        }
+
+        ::v-deep .el-table__fixed .row-hover > td {
+          background-color: v-bind(tableRowHoverBackgroundColor) !important;
+        }
+
+        ::v-deep .el-table__fixed-right .row-hover > td {
+          background-color: v-bind(tableRowHoverBackgroundColor) !important;
+        }
+
+        /* -----------------------------
+         * ⭐ 禁用状态的特殊样式
+         * ----------------------------- */
+        ::v-deep .row-disabled > td {
+          background-color: rgba(245, 108, 108, 0.05) !important;
+          color: #f56c6c !important;
+        }
+
+        ::v-deep .el-table__fixed .row-disabled > td,
+        ::v-deep .el-table__fixed-right .row-disabled > td {
+          background-color: rgba(245, 108, 108, 0.05) !important;
+        }
+
+        /* 禁用状态且悬停时的样式 */
+        ::v-deep .row-disabled.row-hover > td {
+          background-color: rgba(245, 108, 108, 0.15) !important;
+        }
+
+        ::v-deep .el-table__fixed .row-disabled.row-hover > td,
+        ::v-deep .el-table__fixed-right .row-disabled.row-hover > td {
+          background-color: rgba(245, 108, 108, 0.15) !important;
+        }
+
+        /* 操作按钮样式调整 */
+        ::v-deep .el-table__row .el-button--text {
+          color: v-bind(tableTextColor);
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+
+        /* Tag标签颜色适配 */
+        ::v-deep .el-tag {
+          &.el-tag--success {
+            background-color: rgba(103, 194, 58, 0.1);
+            border-color: rgba(103, 194, 58, 0.2);
+            color: #67c23a;
+          }
+          &.el-tag--danger {
+            background-color: rgba(245, 108, 108, 0.1);
+            border-color: rgba(245, 108, 108, 0.2);
+            color: #f56c6c;
+          }
+          &.el-tag--warning {
+            background-color: rgba(230, 162, 60, 0.1);
+            border-color: rgba(230, 162, 60, 0.2);
+            color: #e6a23c;
+          }
+          &.el-tag--info {
+            background-color: rgba(144, 147, 153, 0.1);
+            border-color: rgba(144, 147, 153, 0.2);
+            color: #909399;
           }
         }
       }
