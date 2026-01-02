@@ -400,140 +400,127 @@
           />
         </div>
 
-        <div class="table-wrapper">
-          <el-table
-            :data="userList"
-            :height="tableHeight"
-            border
-            row-key="id"
-            @cell-mouse-enter="onCellEnter"
-            @cell-mouse-leave="onCellLeave"
-            :row-class-name="rowClassName"
-          >
-            <!-- 新增头像列 -->
-            <el-table-column label="头像" width="80" align="center">
-              <template slot-scope="scope">
-                <div class="avatar-cell">
-                  <el-avatar
-                    v-if="scope.row.avatar"
-                    :size="40"
-                    :src="scope.row.avatar"
-                    :alt="scope.row.username"
-                    fit="cover"
-                    class="user-avatar"
-                  />
-                  <el-avatar
-                    v-else
-                    :size="40"
-                    :src="defaultAvatar"
-                    :alt="scope.row.username"
-                    class="user-avatar"
-                  >
-                    {{
-                      scope.row.username
-                        ? scope.row.username.charAt(0).toUpperCase()
-                        : "U"
-                    }}
-                  </el-avatar>
-                </div>
-              </template>
-            </el-table-column>
+        <div class="table-wrapper" :style="{ height: tableHeight + 'px' }">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th class="col-avatar">头像</th>
+                <th class="sticky-left col-username">用户名</th>
+                <th class="col-id">用户ID</th>
+                <th class="col-realname">真实姓名</th>
+                <th class="col-email">邮箱</th>
+                <th class="col-phone">手机号</th>
+                <th class="col-department">所属部门</th>
+                <th class="col-roles">角色</th>
+                <th class="col-status">状态</th>
+                <th class="col-last-login-time">最后登录时间</th>
+                <th class="col-last-login-ip">最后登录IP</th>
+                <th class="col-creator">创建人</th>
+                <th class="col-create-time">创建时间</th>
+                <th class="sticky-right col-actions">操作</th>
+              </tr>
+            </thead>
 
-            <el-table-column
-              prop="username"
-              label="用户名"
-              width="120"
-              fixed="left"
-            />
-            <el-table-column prop="id" label="用户ID" width="80" />
-            <el-table-column prop="real_name" label="真实姓名" width="100" />
-            <el-table-column prop="email" label="邮箱" width="180" />
-            <el-table-column prop="phone" label="手机号" width="120" />
-            <el-table-column
-              prop="department_name"
-              label="所属部门"
-              width="120"
-            />
-
-            <!-- 新增角色列 -->
-            <el-table-column label="角色" width="200">
-              <template slot-scope="scope">
-                <div class="roles-container">
-                  <el-tag
-                    v-for="role in scope.row.roles"
-                    :key="role.id"
-                    :type="getRoleTagType(role.id)"
-                    size="small"
-                    class="role-tag"
-                  >
-                    {{ role.name }}
-                  </el-tag>
-                  <span
-                    v-if="!scope.row.roles || scope.row.roles.length === 0"
-                    class="no-roles"
-                  >
-                    无角色
-                  </span>
-                </div>
-              </template>
-            </el-table-column>
-
-            <el-table-column
-              prop="status"
-              label="状态"
-              width="80"
-              align="center"
-            >
-              <template slot-scope="scope">
-                <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                  {{ scope.row.status === 1 ? "启用" : "禁用" }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column
-              prop="last_login_time"
-              label="最后登录时间"
-              width="160"
-            >
-              <template slot-scope="scope">
-                {{ formatDateTime(scope.row.last_login_time) }}
-              </template>
-            </el-table-column>
-            <el-table-column
-              prop="last_login_ip"
-              label="最后登录IP"
-              width="120"
-            />
-            <el-table-column prop="creator_name" label="创建人" width="100" />
-            <el-table-column prop="create_time" label="创建时间" width="160">
-              <template slot-scope="scope">
-                {{ formatDateTime(scope.row.create_time) }}
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="操作"
-              width="180"
-              align="center"
-              fixed="right"
-            >
-              <template slot-scope="scope">
-                <el-button
-                  type="text"
-                  size="small"
-                  style="color: #67c23a"
-                  @click="editRow(scope.row)"
-                  >编辑</el-button
+            <tbody>
+              <template v-for="row in userList">
+                <tr 
+                  :key="row.id"
+                  :class="rowStatusClass(row)"
+                  @mouseenter="handleRowMouseEnter(row)"
+                  @mouseleave="handleRowMouseLeave"
                 >
-                <el-button
-                  type="text"
-                  size="small"
-                  style="color: red"
-                  @click="deleteRow(scope.row)"
-                  >删除</el-button
-                >
+                  <!-- 头像列 -->
+                  <td class="col-avatar" align="center">
+                    <div class="avatar-cell">
+                      <el-avatar
+                        v-if="row.avatar"
+                        :size="40"
+                        :src="row.avatar"
+                        :alt="row.username"
+                        fit="cover"
+                        class="user-avatar"
+                      />
+                      <el-avatar
+                        v-else
+                        :size="40"
+                        :src="defaultAvatar"
+                        :alt="row.username"
+                        class="user-avatar"
+                      >
+                        {{
+                          row.username
+                            ? row.username.charAt(0).toUpperCase()
+                            : "U"
+                        }}
+                      </el-avatar>
+                    </div>
+                  </td>
+
+                  <!-- 左侧固定列：用户名 -->
+                  <td class="sticky-left col-username">
+                    {{ row.username }}
+                  </td>
+
+                  <td class="col-id">{{ row.id }}</td>
+                  <td class="col-realname">{{ row.real_name || '-' }}</td>
+                  <td class="col-email">{{ row.email || '-' }}</td>
+                  <td class="col-phone">{{ row.phone || '-' }}</td>
+                  <td class="col-department">{{ row.department_name || '-' }}</td>
+                  
+                  <!-- 角色列 -->
+                  <td class="col-roles">
+                    <div class="roles-container">
+                      <el-tag
+                        v-for="role in row.roles"
+                        :key="role.id"
+                        :type="getRoleTagType(role.id)"
+                        size="small"
+                        class="role-tag"
+                      >
+                        {{ role.name }}
+                      </el-tag>
+                      <span
+                        v-if="!row.roles || row.roles.length === 0"
+                        class="no-roles"
+                      >
+                        无角色
+                      </span>
+                    </div>
+                  </td>
+                  
+                  <td class="col-status" align="center">
+                    <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+                      {{ row.status === 1 ? "启用" : "禁用" }}
+                    </el-tag>
+                  </td>
+                  <td class="col-last-login-time">{{ formatDateTime(row.last_login_time) }}</td>
+                  <td class="col-last-login-ip">{{ row.last_login_ip || '-' }}</td>
+                  <td class="col-creator">{{ row.creator_name || '-' }}</td>
+                  <td class="col-create-time">{{ formatDateTime(row.create_time) }}</td>
+
+                  <!-- 右侧固定列 -->
+                  <td class="sticky-right col-actions" align="center">
+                    <el-button
+                      type="text"
+                      size="small"
+                      style="color: #67c23a"
+                      @click="editRow(row)"
+                    >
+                      编辑
+                    </el-button>
+                    <el-button
+                      type="text"
+                      size="small"
+                      style="color: red"
+                      @click="deleteRow(row)"
+                    >
+                      删除
+                    </el-button>
+                  </td>
+                </tr>
               </template>
-            </el-table-column>
-          </el-table>
+            </tbody>
+          </table>
         </div>
 
         <!-- 分页器 -->
@@ -581,6 +568,8 @@ export default {
       "tableHeaderBackgroundColor",
       "tableHeaderTextColor",
       "tableRowHoverBackgroundColor",
+      "border_color",
+      "table_header_border_color",
     ]),
   },
 
@@ -605,6 +594,7 @@ export default {
       formVisible: false,
       currentUserId: null,
       screenResizeTimer: null,
+      resizeTimer: null,
       pagination: {
         total: 0,
         pageSize: 10,
@@ -614,7 +604,7 @@ export default {
       cachedSearchParams: {},
       roleTagTypes: ["", "success", "info", "warning", "danger"],
 
-      // ⭐ 记录 hover 行
+      // 鼠标悬停行ID
       hoverRowId: null,
     };
   },
@@ -627,49 +617,48 @@ export default {
   mounted() {
     this.$nextTick(() => {
       this.updateTableHeight();
+      window.addEventListener("resize", this.handleResize);
       window.addEventListener("resize", this.handleScreenResize);
     });
   },
 
   beforeDestroy() {
+    window.removeEventListener("resize", this.handleResize);
     window.removeEventListener("resize", this.handleScreenResize);
 
     if (this.screenResizeTimer) {
       clearTimeout(this.screenResizeTimer);
     }
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
   },
 
   methods: {
-    /* -------------------------
-     *  ⭐ Hover 行同步逻辑
-     * ------------------------- */
-    onCellEnter(row) {
-      this.hoverRowId = row.id;
+    // 根据状态返回CSS类名
+    rowStatusClass(row) {
+      const classes = [];
+      
+      // 添加 hover 类
+      if (row.id === this.hoverRowId) {
+        classes.push('row-hover');
+      }
+      
+      // 禁用状态的特殊样式
+      if (row.status === 0) {
+        classes.push('row-disabled');
+      }
+      
+      return classes.join(' ');
     },
 
-    onCellLeave() {
+    // 鼠标悬停处理
+    handleRowMouseEnter(row) {
+      this.hoverRowId = row.id;
+    },
+    
+    handleRowMouseLeave() {
       this.hoverRowId = null;
     },
 
-    rowClassName({ row }) {
-      const classes = [];
-
-      // 添加 hover 类
-      if (row.id === this.hoverRowId) {
-        classes.push("row-hover");
-      }
-
-      // 禁用状态的特殊样式
-      if (row.status === 0) {
-        classes.push("row-disabled");
-      }
-
-      return classes.join(" ");
-    },
-
-    /* -------------------------
-     *  其他方法
-     * ------------------------- */
     getRoleTagType(roleId) {
       const types = ["", "success", "info", "warning", "danger"];
       return types[roleId % types.length] || "";
@@ -708,6 +697,13 @@ export default {
       }, 150);
     },
 
+    handleResize() {
+      if (this.resizeTimer) clearTimeout(this.resizeTimer);
+      this.resizeTimer = setTimeout(() => {
+        this.updateTableHeight();
+      }, 150);
+    },
+
     updateTableHeight() {
       const cardEl = this.$el.querySelector(".card");
       const headerEl = cardEl.querySelector(".header");
@@ -717,9 +713,10 @@ export default {
         const headerHeight = headerEl.clientHeight;
         const marginBottom = 10;
         const paddingFix = 40;
+        const paginationHeight = 50; // 分页器高度
 
         this.tableHeight =
-          cardHeight - headerHeight - marginBottom - paddingFix - 50;
+          cardHeight - headerHeight - marginBottom - paddingFix - paginationHeight;
       }
     },
 
@@ -963,13 +960,16 @@ export default {
         flex: 1;
         min-height: 0;
         overflow: auto;
+        position: relative;
+        border: 1px solid v-bind(border_color);
 
-        /* 表格背景 */
-        ::v-deep .el-table {
+        .user-table {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
           background-color: v-bind(tableBackgroundColor);
           color: v-bind(tableTextColor);
-          width: 100%;
-
+          
           // 头像单元格样式
           .avatar-cell {
             display: flex;
@@ -1002,71 +1002,199 @@ export default {
           }
         }
 
-        /* 表头 */
-        ::v-deep .el-table__header th {
-          background-color: v-bind(tableHeaderBackgroundColor) !important;
-          color: v-bind(tableHeaderTextColor) !important;
+        /* 固定表头 - 使用伪元素实现下边框 */
+        thead {
+          position: sticky;
+          top: 0;
+          z-index: 5;
+        }
+        
+        thead::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 1px;
+          background-color: v-bind(table_header_border_color);
+          z-index: 7;
         }
 
-        /* 行背景 */
-        ::v-deep .el-table__row {
-          background-color: v-bind(tableBackgroundColor) !important;
+        thead tr {
+          background-color: v-bind(tableHeaderBackgroundColor);
+          color: v-bind(tableHeaderTextColor);
+          position: relative; /* 确保伪元素定位正确 */
         }
 
-        /* 单元格字体颜色 */
-        ::v-deep .el-table__row td {
-          color: v-bind(tableTextColor) !important;
+        th,
+        td {
+          padding: 8px 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
 
-        /* -----------------------------
-         * ⭐ 统一 hover 行（主表格 + 左固定列 + 右固定列）
-         * ----------------------------- */
-        ::v-deep .row-hover > td {
-          background-color: v-bind(tableRowHoverBackgroundColor) !important;
+        /* 行 hover */
+        tbody tr:hover td {
+          background-color: v-bind(tableRowHoverBackgroundColor);
         }
 
-        ::v-deep .el-table__fixed .row-hover > td {
-          background-color: v-bind(tableRowHoverBackgroundColor) !important;
-        }
-
-        ::v-deep .el-table__fixed-right .row-hover > td {
-          background-color: v-bind(tableRowHoverBackgroundColor) !important;
-        }
-
-        /* -----------------------------
-         * ⭐ 禁用状态的特殊样式
-         * ----------------------------- */
-        ::v-deep .row-disabled > td {
+        /* 禁用状态的特殊样式 */
+        .row-disabled td {
           background-color: rgba(245, 108, 108, 0.05) !important;
           color: #f56c6c !important;
         }
 
-        ::v-deep .el-table__fixed .row-disabled > td,
-        ::v-deep .el-table__fixed-right .row-disabled > td {
+        .row-disabled:hover td {
+          background-color: rgba(245, 108, 108, 0.15) !important;
+        }
+
+        /* 固定列 */
+        .sticky-left {
+          position: sticky;
+          left: 0;
+          z-index: 4;
+          background-color: v-bind(tableBackgroundColor);
+          box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sticky-right {
+          position: sticky;
+          right: 0;
+          z-index: 4;
+          background-color: v-bind(tableBackgroundColor);
+          box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 禁用状态的固定列背景色 */
+        .row-disabled .sticky-left,
+        .row-disabled .sticky-right {
           background-color: rgba(245, 108, 108, 0.05) !important;
         }
 
-        /* 禁用状态且悬停时的样式 */
-        ::v-deep .row-disabled.row-hover > td {
+        .row-disabled:hover .sticky-left,
+        .row-disabled:hover .sticky-right {
           background-color: rgba(245, 108, 108, 0.15) !important;
         }
 
-        ::v-deep .el-table__fixed .row-disabled.row-hover > td,
-        ::v-deep .el-table__fixed-right .row-disabled.row-hover > td {
-          background-color: rgba(245, 108, 108, 0.15) !important;
+        /* 表头中的固定列需要有更高的 z-index */
+        thead .sticky-left,
+        thead .sticky-right {
+          z-index: 6;
+          background-color: v-bind(tableHeaderBackgroundColor);
+          box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        /* 操作按钮样式调整 */
-        ::v-deep .el-table__row .el-button--text {
-          color: v-bind(tableTextColor);
+        /* 修复表头固定列在滚动时的样式 */
+        thead .sticky-left::after,
+        thead .sticky-right::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: -4px;
+          width: 4px;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0) 100%
+          );
+        }
 
-          &:hover {
-            opacity: 0.8;
-          }
+        thead .sticky-right::after {
+          right: auto;
+          left: -4px;
+          background: linear-gradient(
+            270deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0) 100%
+          );
+        }
+
+        /* 列宽 */
+        .col-avatar {
+          width: 80px;
+          min-width: 80px;
+        }
+        .col-username {
+          width: 120px;
+          min-width: 120px;
+          text-align: center;
+        }
+        .col-id {
+          width: 80px;
+          min-width: 80px;
+          text-align: center;
+        }
+        .col-realname {
+          width: 100px;
+          min-width: 100px;
+          text-align: center;
+        }
+        .col-email {
+          width: 180px;
+          min-width: 180px;
+          text-align: left;
+        }
+        .col-phone {
+          width: 120px;
+          min-width: 120px;
+          text-align: left;
+        }
+        .col-department {
+          width: 120px;
+          min-width: 120px;
+          text-align: center;
+        }
+        .col-roles {
+          width: 200px;
+          min-width: 200px;
+          text-align: left;
+        }
+        .col-status {
+          width: 80px;
+          min-width: 80px;
+        }
+        .col-last-login-time {
+          width: 160px;
+          min-width: 160px;
+          text-align: center;
+        }
+        .col-last-login-ip {
+          width: 120px;
+          min-width: 120px;
+          text-align: center;
+        }
+        .col-creator {
+          width: 100px;
+          min-width: 100px;
+          text-align: center;
+        }
+        .col-create-time {
+          width: 160px;
+          min-width: 160px;
+          text-align: center;
+        }
+        .col-actions {
+          width: 180px;
+          min-width: 180px;
+        }
+
+        /* 修复表格滚动时的边框问题 */
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        /* 确保固定列在滚动时不被遮挡 */
+        .sticky-left,
+        .sticky-right {
+          position: -webkit-sticky; /* Safari 支持 */
+          position: sticky;
         }
 
         /* Tag标签颜色适配 */
-        ::v-deep .el-tag {
+        .el-tag {
           &.el-tag--success {
             background-color: rgba(103, 194, 58, 0.1);
             border-color: rgba(103, 194, 58, 0.2);
@@ -1086,6 +1214,44 @@ export default {
             background-color: rgba(144, 147, 153, 0.1);
             border-color: rgba(144, 147, 153, 0.2);
             color: #909399;
+          }
+        }
+
+        /* 美化滚动条 */
+        &::-webkit-scrollbar {
+          background: rgba(0, 0, 0, 0.05);
+          width: 8px;
+          height: 8px;
+          &:vertical {
+            border-left: 1px solid v-bind(border_color);
+          }
+        }
+        /* 改变滚动条交叉区域背景 - 主题色 */
+        &::-webkit-scrollbar-corner {
+          background: rgba(0, 0, 0, 0.05);
+          border-left: 1px solid v-bind(border_color);
+          border-top: 1px solid v-bind(border_color);
+        }
+
+        &::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border: 1px solid v-bind(border_color);
+          border-right: none;
+          border-bottom: none;
+          border-left: none;
+          margin-top: 35px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: rgba(144, 147, 153, 0.3);
+          transition: background 0.3s;
+
+          &:hover {
+            background: rgba(144, 147, 153, 0.5);
+          }
+
+          &:active {
+            background: rgba(144, 147, 153, 0.7);
           }
         }
       }

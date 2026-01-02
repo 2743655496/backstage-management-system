@@ -1,6 +1,7 @@
 import logging
 import uuid
 import jwt
+import json
 from user_permission.models import User, UserRole, RolePermission, Permission, Menu
 from user_permission.serializers.auth_serializers import UserLoginSerializer
 from user_permission.utils.jwt_utils import JWTUtils
@@ -66,7 +67,7 @@ class LoginView(APIView):
             user.save(update_fields=['last_login_time', 'last_login_ip'])
 
             # 生成 token
-            access_token = JWTUtils.create_access_token(user,1)
+            access_token = JWTUtils.create_access_token(user, 1)
             if remember:
                 refresh_token = JWTUtils.create_refresh_token(user, 7)
             else:
@@ -192,7 +193,7 @@ class TokenRefreshView(APIView):
         except Exception:
             return Response({'code': 401, 'error': 'Refresh Token 无效或已过期'})
 
-        new_access_token = JWTUtils.create_access_token(user,1)
+        new_access_token = JWTUtils.create_access_token(user, 1)
         response = Response({'code': 200, 'message': 'Token 已刷新'})
         response.set_cookie('access_token', new_access_token, httponly=True, secure=not settings.DEBUG,
                             samesite='Strict',
@@ -264,7 +265,9 @@ class UserPermissionView(APIView):
             is_deleted=0
         )
 
-        # 菜单权限（type=1）
+        # -----------------------------
+        # ① 菜单权限（type=1）
+        # -----------------------------
         menu_ids = permissions.filter(type=1).values_list('menu_id', flat=True)
         menus = Menu.objects.filter(id__in=menu_ids, status=1, is_deleted=0).order_by('sort')
         menus_list = []
@@ -283,6 +286,8 @@ class UserPermissionView(APIView):
                         'children': build_tree(menu_list, menu.id)
                     }
                     tree.append(item)
+
+                    # 非根节点加入 menus_list（用于前端路由）
                     if parent_id != 0:
                         menus_list.append({
                             'id': menu.id,
@@ -294,30 +299,45 @@ class UserPermissionView(APIView):
 
         menu_permissions = build_tree(list(menus))
 
-        # 接口权限（type=2），按菜单 path 分组
-        permission_map = {}
+        # -----------------------------
+        # ② 接口权限（type=2）
+        # 后端中间件使用
+        # -----------------------------
+        api_permissions = {}
+
         for perm in permissions.filter(type=2):
             menu = Menu.objects.filter(id=perm.menu_id, is_deleted=0).first()
             if not menu or not menu.path:
                 continue
-            path = menu.path
-            if path not in permission_map:
-                permission_map[path] = []
-            permission_map[path].append({
-                'id': perm.id,
-                'name': perm.name,
-                'code': perm.code,
-                'method': perm.api_method,
-                'path': perm.api_path
-            })
 
+            api_path = perm.api_path
+            api_method = perm.api_method.upper()
+
+            if api_path not in api_permissions:
+                api_permissions[api_path] = []
+
+            api_permissions[api_path].append(api_method)
+
+        # -----------------------------
+        # ④ 所有权限 code（通用）
+        # 后端中间件也可使用
+        # -----------------------------
+        permission_codes = list(
+            permissions.values_list("code", flat=True)
+        )
+
+        # -----------------------------
+        # 最终返回结构
+        # -----------------------------
         result = {
             "menus_list": menus_list,
-            'menu_permissions': menu_permissions,
-            'permission_map': permission_map
+            "menu_permissions": menu_permissions,
+            "api_permissions": api_permissions,           # ⭐ 后端接口权限控制
+            "permission_codes": permission_codes          # ⭐ 通用权限 code 列表
         }
 
-        # 缓存结果（5分钟）
-        # RedisClient.set(cache_key, json.dumps(result), ex=300)
+        # 缓存结果（30分钟）
+        RedisClient.set(cache_key, json.dumps(result), ex=1800)
 
         return Response(result)
+

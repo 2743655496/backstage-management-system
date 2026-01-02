@@ -330,71 +330,64 @@
           />
         </div>
 
-        <div class="table-wrapper">
-          <el-table
-            :data="roleList"
-            :height="tableHeight"
-            border
-            row-key="id"
-            @cell-mouse-enter="onCellEnter"
-            @cell-mouse-leave="onCellLeave"
-            :row-class-name="rowClassName"
-          >
-            <el-table-column
-              prop="name"
-              label="角色名称"
-              width="200"
-              fixed="left"
-            />
-            <el-table-column prop="id" label="角色ID" width="100" />
-            <el-table-column
-              prop="creator_name"
-              label="创建人"
-              width="120"
-              align="center"
-            />
-            <el-table-column
-              prop="status"
-              label="状态"
-              width="100"
-              align="center"
-            >
-              <template slot-scope="scope">
-                <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                  {{ scope.row.status === 1 ? "启用" : "禁用" }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="description" label="描述" width="250" />
-            <el-table-column prop="create_time" label="创建时间" width="180">
-              <template slot-scope="scope">
-                {{ formatDateTime(scope.row.create_time) }}
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="操作"
-              width="180"
-              align="center"
-              fixed="right"
-            >
-              <template slot-scope="scope">
-                <el-button
-                  type="text"
-                  size="small"
-                  @click="editRow(scope.row)"
-                  style="color: #67c23a"
-                  >编辑</el-button
+        <div class="table-wrapper" :style="{ height: tableHeight + 'px' }">
+          <table class="role-table">
+            <thead>
+              <tr>
+                <th class="sticky-left col-name">角色名称</th>
+                <th class="col-id">角色ID</th>
+                <th class="col-creator">创建人</th>
+                <th class="col-status">状态</th>
+                <th class="col-description">描述</th>
+                <th class="col-time">创建时间</th>
+                <th class="sticky-right col-actions">操作</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <template v-for="row in roleList">
+                <tr 
+                  :key="row.id"
+                  :class="rowStatusClass(row)"
                 >
-                <el-button
-                  type="text"
-                  size="small"
-                  style="color: red"
-                  @click="deleteRow(scope.row)"
-                  >删除</el-button
-                >
+                  <!-- 左侧固定列：角色名称 -->
+                  <td class="sticky-left col-name">
+                    {{ row.name }}
+                  </td>
+
+                  <td class="col-id">{{ row.id }}</td>
+                  <td class="col-creator" align="center">{{ row.creator_name || '-' }}</td>
+                  <td class="col-status" align="center">
+                    <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+                      {{ row.status === 1 ? "启用" : "禁用" }}
+                    </el-tag>
+                  </td>
+                  <td class="col-description">{{ row.description || '-' }}</td>
+                  <td class="col-time">{{ formatDateTime(row.create_time) }}</td>
+
+                  <!-- 右侧固定列 -->
+                  <td class="sticky-right col-actions" align="center">
+                    <el-button
+                      type="text"
+                      size="small"
+                      @click="editRow(row)"
+                      style="color: #67c23a"
+                    >
+                      编辑
+                    </el-button>
+                    <el-button
+                      type="text"
+                      size="small"
+                      style="color: red"
+                      @click="deleteRow(row)"
+                    >
+                      删除
+                    </el-button>
+                  </td>
+                </tr>
               </template>
-            </el-table-column>
-          </el-table>
+            </tbody>
+          </table>
         </div>
 
         <!-- ✅ 分页器 -->
@@ -437,6 +430,8 @@ export default {
       "tableHeaderBackgroundColor",
       "tableHeaderTextColor",
       "tableRowHoverBackgroundColor",
+      "border_color",
+      "table_header_border_color",
     ]),
   },
 
@@ -466,8 +461,9 @@ export default {
       isSearching: false,
       cachedSearchParams: {},
 
-      // ⭐ 记录 hover 行
+      // 鼠标悬停行ID
       hoverRowId: null,
+      resizeTimer: null,
     };
   },
 
@@ -491,39 +487,27 @@ export default {
     if (this.screenResizeTimer) {
       clearTimeout(this.screenResizeTimer);
     }
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
   },
 
   methods: {
-    /* -------------------------
-     *  ⭐ Hover 行同步逻辑
-     * ------------------------- */
-    onCellEnter(row) {
-      this.hoverRowId = row.id;
+    // 根据状态返回CSS类名
+    rowStatusClass(row) {
+      if (row.status === 0) {
+        return 'row-disabled';
+      }
+      return '';
     },
 
-    onCellLeave() {
+    // 鼠标悬停处理
+    handleRowMouseEnter(row) {
+      this.hoverRowId = row.id;
+    },
+    
+    handleRowMouseLeave() {
       this.hoverRowId = null;
     },
 
-    rowClassName({ row }) {
-      const classes = [];
-
-      // 添加 hover 类
-      if (row.id === this.hoverRowId) {
-        classes.push("row-hover");
-      }
-
-      // 禁用状态的特殊样式
-      if (row.status === 0) {
-        classes.push("row-disabled");
-      }
-
-      return classes.join(" ");
-    },
-
-    /* -------------------------
-     *  其他方法
-     * ------------------------- */
     toggleSearchArea() {
       this.showSearchArea = !this.showSearchArea;
       this.$nextTick(() => {
@@ -557,6 +541,13 @@ export default {
       }, 150);
     },
 
+    handleResize() {
+      if (this.resizeTimer) clearTimeout(this.resizeTimer);
+      this.resizeTimer = setTimeout(() => {
+        this.updateTableHeight();
+      }, 150);
+    },
+
     updateTableHeight() {
       const cardEl = this.$el.querySelector(".card");
       const headerEl = cardEl.querySelector(".header");
@@ -566,9 +557,10 @@ export default {
         const headerHeight = headerEl.clientHeight;
         const marginBottom = 10;
         const paddingFix = 40;
+        const paginationHeight = 50; // 分页器高度
 
         this.tableHeight =
-          cardHeight - headerHeight - marginBottom - paddingFix - 50;
+          cardHeight - headerHeight - marginBottom - paddingFix - paginationHeight;
       }
     },
 
@@ -795,79 +787,175 @@ export default {
         flex: 1;
         min-height: 0;
         overflow: auto;
+        position: relative;
+        border: 1px solid v-bind(border_color);
 
-        /* 表格背景 */
-        ::v-deep .el-table {
+        .role-table {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
           background-color: v-bind(tableBackgroundColor);
           color: v-bind(tableTextColor);
-          width: 100%;
         }
 
-        /* 表头 */
-        ::v-deep .el-table__header th {
-          background-color: v-bind(tableHeaderBackgroundColor) !important;
-          color: v-bind(tableHeaderTextColor) !important;
+        /* 固定表头 - 使用伪元素实现下边框 */
+        thead {
+          position: sticky;
+          top: 0;
+          z-index: 5;
+        }
+        
+        thead::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 1px;
+          background-color: v-bind(table_header_border_color);
+          z-index: 7;
         }
 
-        /* 行背景 */
-        ::v-deep .el-table__row {
-          background-color: v-bind(tableBackgroundColor) !important;
+        thead tr {
+          background-color: v-bind(tableHeaderBackgroundColor);
+          color: v-bind(tableHeaderTextColor);
+          position: relative; /* 确保伪元素定位正确 */
         }
 
-        /* 单元格字体颜色 */
-        ::v-deep .el-table__row td {
-          color: v-bind(tableTextColor) !important;
+        th,
+        td {
+          padding: 8px 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
 
-        /* -----------------------------
-         * ⭐ 统一 hover 行（主表格 + 左固定列 + 右固定列）
-         * ----------------------------- */
-        ::v-deep .row-hover > td {
-          background-color: v-bind(tableRowHoverBackgroundColor) !important;
+        /* 行 hover */
+        tbody tr:hover td {
+          background-color: v-bind(tableRowHoverBackgroundColor);
         }
 
-        ::v-deep .el-table__fixed .row-hover > td {
-          background-color: v-bind(tableRowHoverBackgroundColor) !important;
-        }
-
-        ::v-deep .el-table__fixed-right .row-hover > td {
-          background-color: v-bind(tableRowHoverBackgroundColor) !important;
-        }
-
-        /* -----------------------------
-         * ⭐ 禁用状态的特殊样式
-         * ----------------------------- */
-        ::v-deep .row-disabled > td {
+        /* 禁用状态的特殊样式 */
+        .row-disabled td {
           background-color: rgba(245, 108, 108, 0.05) !important;
           color: #f56c6c !important;
         }
 
-        ::v-deep .el-table__fixed .row-disabled > td,
-        ::v-deep .el-table__fixed-right .row-disabled > td {
+        .row-disabled:hover td {
+          background-color: rgba(245, 108, 108, 0.15) !important;
+        }
+
+        /* 固定列 */
+        .sticky-left {
+          position: sticky;
+          left: 0;
+          z-index: 4;
+          background-color: v-bind(tableBackgroundColor);
+          box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sticky-right {
+          position: sticky;
+          right: 0;
+          z-index: 4;
+          background-color: v-bind(tableBackgroundColor);
+          box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 禁用状态的固定列背景色 */
+        .row-disabled .sticky-left,
+        .row-disabled .sticky-right {
           background-color: rgba(245, 108, 108, 0.05) !important;
         }
 
-        /* 禁用状态且悬停时的样式 */
-        ::v-deep .row-disabled.row-hover > td {
+        .row-disabled:hover .sticky-left,
+        .row-disabled:hover .sticky-right {
           background-color: rgba(245, 108, 108, 0.15) !important;
         }
 
-        ::v-deep .el-table__fixed .row-disabled.row-hover > td,
-        ::v-deep .el-table__fixed-right .row-disabled.row-hover > td {
-          background-color: rgba(245, 108, 108, 0.15) !important;
+        /* 表头中的固定列需要有更高的 z-index */
+        thead .sticky-left,
+        thead .sticky-right {
+          z-index: 6;
+          background-color: v-bind(tableHeaderBackgroundColor);
+          box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        /* 操作按钮样式调整 */
-        ::v-deep .el-table__row .el-button--text {
-          color: v-bind(tableTextColor);
+        /* 修复表头固定列在滚动时的样式 */
+        thead .sticky-left::after,
+        thead .sticky-right::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: -4px;
+          width: 4px;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0) 100%
+          );
+        }
 
-          &:hover {
-            opacity: 0.8;
-          }
+        thead .sticky-right::after {
+          right: auto;
+          left: -4px;
+          background: linear-gradient(
+            270deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0) 100%
+          );
+        }
+
+        /* 列宽 */
+        .col-name {
+          width: 200px;
+          min-width: 200px;
+          text-align: center;
+        }
+        .col-id {
+          width: 100px;
+          min-width: 100px;
+          text-align: center;
+        }
+        .col-creator {
+          width: 120px;
+          min-width: 120px;
+        }
+        .col-status {
+          width: 100px;
+          min-width: 100px;
+        }
+        .col-description {
+          width: 360px;
+          min-width: 360px;
+          text-align: left;
+        }
+        .col-time {
+          width: 180px;
+          min-width: 180px;
+          text-align: center;
+        }
+        .col-actions {
+          width: 180px;
+          min-width: 180px;
+        }
+
+        /* 修复表格滚动时的边框问题 */
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        /* 确保固定列在滚动时不被遮挡 */
+        .sticky-left,
+        .sticky-right {
+          position: -webkit-sticky; /* Safari 支持 */
+          position: sticky;
         }
 
         /* Tag标签颜色适配 */
-        ::v-deep .el-tag {
+        .el-tag {
           &.el-tag--success {
             background-color: rgba(103, 194, 58, 0.1);
             border-color: rgba(103, 194, 58, 0.2);
@@ -877,6 +965,44 @@ export default {
             background-color: rgba(245, 108, 108, 0.1);
             border-color: rgba(245, 108, 108, 0.2);
             color: #f56c6c;
+          }
+        }
+
+        /* 美化滚动条 */
+        &::-webkit-scrollbar {
+          background: rgba(0, 0, 0, 0.05);
+          width: 8px;
+          height: 8px;
+          &:vertical {
+            border-left: 1px solid v-bind(border_color);
+          }
+        }
+        /* 改变滚动条交叉区域背景 - 主题色 */
+        &::-webkit-scrollbar-corner {
+          background: rgba(0, 0, 0, 0.05);
+          border-left: 1px solid v-bind(border_color);
+          border-top: 1px solid v-bind(border_color);
+        }
+
+        &::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border: 1px solid v-bind(border_color);
+          border-right: none;
+          border-bottom: none;
+          border-left: none;
+          margin-top: 35px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: rgba(144, 147, 153, 0.3);
+          transition: background 0.3s;
+
+          &:hover {
+            background: rgba(144, 147, 153, 0.5);
+          }
+
+          &:active {
+            background: rgba(144, 147, 153, 0.7);
           }
         }
       }

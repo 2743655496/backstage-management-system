@@ -110,7 +110,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters("LightModule", ["isLightOn"]),
+    ...mapGetters("LightModule", ["isLightOn","textColor"]),
     ...mapGetters("LanguageModule", ["currentLanguage", "languages"]),
     current_color() {
       // 根据 isLightOn 动态计算颜色
@@ -122,9 +122,11 @@ export default {
       };
     },
   },
-  mounted() {},
+  mounted() {
+    
+  },
   methods: {
-    ...mapActions("LightModule", ["toggleLight"]),
+    ...mapActions("LightModule", ["toggleLight","textColor"]),
     ...mapActions("LanguageModule", ["changeLanguage"]),
     /**
      * 切换语言
@@ -302,6 +304,7 @@ body {
       font-weight: 300;
       letter-spacing: 0.5px;
       line-height: 1.6;
+      color: v-bind(textColor);
     }
   }
   /* 控制按钮 */

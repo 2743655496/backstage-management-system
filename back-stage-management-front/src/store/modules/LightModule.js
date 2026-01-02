@@ -36,11 +36,29 @@ function applyTheme(state, isLight) {
   state.tableTextColor = isLight ? "#303133" : "#d0d0d0"
   state.tableHeaderBackgroundColor = isLight ? "#f5f7fa" : "#2a2a2a"
   state.tableHeaderTextColor = isLight ? "#606266" : "#e0e0e0"
+  state.table_header_border_color = isLight ? "rgba(0, 0, 0, 0.1)" : "#909399"
 
   // ⭐ 表格 hover 行颜色（亮/暗）——已按大众审美优化
   state.tableRowHoverBackgroundColor = isLight
     ? "#f0f7ff"   // 亮色 hover：柔和淡蓝
     : "#2a2a2a"   // 暗色 hover：深灰微亮
+
+  // ⭐ 权限特殊行颜色（亮/暗）
+  state.permissionButtonBgColor = isLight
+    ? "#f0f9eb"   // 亮色模式：浅绿色
+    : "#1f3a1f"   // 暗色模式：深绿色
+  
+  state.permissionButtonHoverBgColor = isLight
+    ? "#e1f7d4"   // 亮色模式：稍深的绿色
+    : "#2a4a2a"   // 暗色模式：稍亮的深绿色
+  
+  state.permissionApiBgColor = isLight
+    ? "#fdf6ec"   // 亮色模式：浅黄色
+    : "#3a2a1f"   // 暗色模式：深棕色
+  
+  state.permissionApiHoverBgColor = isLight
+    ? "#faeedb"   // 亮色模式：稍深的黄色
+    : "#4a3a2a"   // 暗色模式：稍亮的深棕色
 }
 
 const state = {
@@ -50,13 +68,13 @@ const state = {
   activeColor: "#409EFF",
   hoverColor: "#ecf5ff",
   buttonHoverColor: "#f5f5f5",
-  el_breadcrumb_color:"#909399",
-  el_breadcrumb_last_color:"#303133",
-  border_color:"#ebeef5",
+  el_breadcrumb_color: "#909399",
+  el_breadcrumb_last_color: "#303133",
+  border_color: "#ebeef5",
 
   // tab
-  tab_boder_color:"#409eff",
-  tab_background_color:"#ecf5ff",
+  tab_boder_color: "#409eff",
+  tab_background_color: "#ecf5ff",
 
   // 主页面背景 & 子页面背景 
   mainBackgroundColor: "#f5f7fa",
@@ -82,9 +100,16 @@ const state = {
   tableTextColor: "#303133",
   tableHeaderBackgroundColor: "#f5f7fa",
   tableHeaderTextColor: "#606266",
+  table_header_border_color:"rgba(0, 0, 0, 0.1)",
 
   // ⭐ 表格 hover 行背景色（默认亮色）
   tableRowHoverBackgroundColor: "#f0f7ff",
+
+  // ⭐ 权限特殊行颜色（默认亮色）
+  permissionButtonBgColor: "#f0f9eb",
+  permissionButtonHoverBgColor: "#e1f7d4",
+  permissionApiBgColor: "#fdf6ec",
+  permissionApiHoverBgColor: "#faeedb",
 }
 
 const getters = {
@@ -120,6 +145,13 @@ const getters = {
   tableHeaderBackgroundColor: (state) => state.tableHeaderBackgroundColor,
   tableHeaderTextColor: (state) => state.tableHeaderTextColor,
   tableRowHoverBackgroundColor: (state) => state.tableRowHoverBackgroundColor,
+  table_header_border_color: (state) => state.table_header_border_color,
+
+  // ⭐ 权限特殊行颜色
+  permissionButtonBgColor: (state) => state.permissionButtonBgColor,
+  permissionButtonHoverBgColor: (state) => state.permissionButtonHoverBgColor,
+  permissionApiBgColor: (state) => state.permissionApiBgColor,
+  permissionApiHoverBgColor: (state) => state.permissionApiHoverBgColor,
 }
 
 const mutations = {

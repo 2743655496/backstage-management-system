@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-8pf_9*jnm8@)6(#bn=4ojbot+pcc^cszvpk&@)b)uux*sj=bq6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = True
+DEBUG = False
 
 HOST = '192.168.10.143'
 
@@ -63,7 +63,8 @@ MIDDLEWARE = [
     # 'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 添加你的自定义 JWT 认证中间件
-    'user_permission.middleware.JWTAuthMiddleware',
+    'user_permission.middlewares.jwt_auth.JWTAuthMiddleware',
+    # 'user_permission.middlewares.permission.PermissionMiddleware',
 ]
 
 ROOT_URLCONF = 'back_stage_management_django.urls'

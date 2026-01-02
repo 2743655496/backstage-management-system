@@ -12,91 +12,99 @@
         </el-button>
       </div>
 
-      <div class="table-wrapper">
-        <el-table
-          :data="permissionTree"
-          :height="tableHeight"
-          row-key="id"
-          border
-          :tree-props="{ children: 'children' }"
-          @cell-mouse-enter="onCellEnter"
-          @cell-mouse-leave="onCellLeave"
-          :row-class-name="rowClassName"
-        >
-          <!-- ✅ 左侧固定列 -->
-          <el-table-column 
-            prop="name" 
-            label="权限名称" 
-            width="200" 
-            fixed="left" 
-          />
+      <div class="table-wrapper" :style="{ height: tableHeight + 'px' }">
+        <table class="permission-table">
+          <thead>
+            <tr>
+              <th class="sticky-left col-name">权限名称</th>
+              <th class="col-code">权限标识</th>
+              <th class="col-type">类型</th>
+              <th class="col-method">接口方法</th>
+              <th class="col-path">接口路径</th>
+              <th class="col-description">描述</th>
+              <th class="col-creator">创建人</th>
+              <th class="col-status">状态</th>
+              <th class="sticky-right col-actions">操作</th>
+            </tr>
+          </thead>
 
-          <!-- 中间普通列 -->
-          <el-table-column prop="code" label="权限标识" width="200" />
-          <el-table-column prop="type" label="类型" width="100" align="center">
-            <template slot-scope="scope">
-              <el-tag :type="typeTag(scope.row.type)">
-                {{ typeLabel(scope.row.type) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="api_method"
-            label="接口方法"
-            width="100"
-            align="center"
-          />
-          <el-table-column prop="api_path" label="接口路径" width="250" />
-          <el-table-column prop="description" label="描述" width="200" />
-          <el-table-column
-            prop="creator.username"
-            label="创建人"
-            width="120"
-            align="center"
-          />
-          <el-table-column
-            prop="status"
-            label="状态"
-            width="100"
-            align="center"
-          >
-            <template slot-scope="scope">
-              <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                {{ scope.row.status === 1 ? "启用" : "禁用" }}
-              </el-tag>
-            </template>
-          </el-table-column>
+          <tbody>
+            <template v-for="row in flatTree">
+              <tr :key="`${row.id}-${row.expanded}`" :class="rowTypeClass(row)">
+                <!-- 左侧固定列：权限名称 + 缩进 + 展开按钮 -->
+                <td class="sticky-left col-name">
+                  <div
+                    class="tree-cell"
+                    :style="{ paddingLeft: row.level * 20 + 'px' }"
+                  >
+                    <i
+                      v-if="row.hasChildren"
+                      :class="
+                        row.expanded
+                          ? 'el-icon-arrow-down'
+                          : 'el-icon-arrow-right'
+                      "
+                      class="toggle-btn"
+                      @click="toggle(row)"
+                    ></i>
+                    <i
+                      v-else
+                      class="toggle-placeholder el-icon-arrow-right"
+                      style="visibility: hidden"
+                    ></i>
+                    {{ row.name }}
+                  </div>
+                </td>
 
-          <!-- ✅ 右侧固定列 -->
-          <el-table-column
-            label="操作"
-            width="180"
-            align="center"
-            fixed="right"
-          >
-            <template slot-scope="scope">
-              <el-button type="text" size="small" @click="addChild(scope.row)">
-                新增下级
-              </el-button>
-              <el-button
-                type="text"
-                size="small"
-                @click="editRow(scope.row)"
-                style="color: #67c23a"
-              >
-                编辑
-              </el-button>
-              <el-button
-                type="text"
-                size="small"
-                @click="deleteRow(scope.row)"
-                style="color: red"
-              >
-                删除
-              </el-button>
+                <td class="col-code">{{ row.code }}</td>
+                <td class="col-type" align="center">
+                  <el-tag :type="typeTag(row.type)">
+                    {{ typeLabel(row.type) }}
+                  </el-tag>
+                </td>
+                <td class="col-method" align="center">{{ row.api_method }}</td>
+                <td class="col-path">{{ row.api_path }}</td>
+                <td class="col-description">{{ row.description }}</td>
+                <td class="col-creator" align="center">
+                  {{ row.creator?.username || "-" }}
+                </td>
+                <td class="col-status" align="center">
+                  <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+                    {{ row.status === 1 ? "启用" : "禁用" }}
+                  </el-tag>
+                </td>
+
+                <!-- 右侧固定列 -->
+                <td class="sticky-right col-actions" align="center">
+                  <el-button
+                    type="text"
+                    size="small"
+                    @click="addChild(row)"
+                    style="color: #409eff"
+                  >
+                    新增下级
+                  </el-button>
+                  <el-button
+                    type="text"
+                    size="small"
+                    @click="editRow(row)"
+                    style="color: #67c23a"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    type="text"
+                    size="small"
+                    @click="deleteRow(row)"
+                    style="color: red"
+                  >
+                    删除
+                  </el-button>
+                </td>
+              </tr>
             </template>
-          </el-table-column>
-        </el-table>
+          </tbody>
+        </table>
       </div>
     </el-card>
 
@@ -119,7 +127,7 @@ import { mapGetters } from "vuex";
 
 export default {
   components: { PermissionForm },
-  
+
   computed: {
     ...mapGetters("LightModule", [
       "subBackgroundColor",
@@ -128,7 +136,41 @@ export default {
       "tableHeaderBackgroundColor",
       "tableHeaderTextColor",
       "tableRowHoverBackgroundColor",
+      "border_color",
+      "table_header_border_color",
+      "permissionButtonBgColor",
+      "permissionButtonHoverBgColor",
+      "permissionApiBgColor",
+      "permissionApiHoverBgColor",
     ]),
+
+    // ⭐ 将树形结构拍平成可渲染的列表
+    flatTree() {
+      const result = [];
+
+      const dfs = (nodes, level = 0, parentRef = null) => {
+        nodes.forEach((node, index) => {
+          // 创建节点引用，保持对原始节点的引用
+          const nodeRef = {
+            ...node,
+            level,
+            hasChildren: node.children && node.children.length > 0,
+            // 关键：保持对原始节点的引用
+            _originalNode: node,
+          };
+
+          result.push(nodeRef);
+
+          // 只有当节点被展开且存在子节点时，才继续遍历子节点
+          if (node.expanded && node.children && node.children.length) {
+            dfs(node.children, level + 1, nodeRef);
+          }
+        });
+      };
+
+      dfs(this.permissionTree);
+      return result;
+    },
   },
 
   data() {
@@ -138,64 +180,50 @@ export default {
       currentPermission: null,
       permissionTree: [],
       resizeTimer: null,
-      
-      // ⭐ 记录 hover 行
-      hoverRowId: null,
+      // 添加一个标志来触发 flatTree 重新计算
+      treeVersion: 0,
     };
   },
-  
+
   created() {
     this.fetchPermissions();
   },
-  
+
   mounted() {
     this.$nextTick(() => {
       this.updateTableHeight();
       window.addEventListener("resize", this.handleResize);
     });
   },
-  
+
   beforeDestroy() {
     window.removeEventListener("resize", this.handleResize);
     if (this.resizeTimer) clearTimeout(this.resizeTimer);
   },
-  
+
   methods: {
-    /* -------------------------
-     *  ⭐ Hover 行同步逻辑
-     * ------------------------- */
-    onCellEnter(row) {
-      this.hoverRowId = row.id;
-    },
-    
-    onCellLeave() {
-      this.hoverRowId = null;
-    },
-    
-    rowClassName({ row }) {
-      const classes = [];
-      
-      // 添加 hover 类
-      if (row.id === this.hoverRowId) {
-        classes.push("row-hover");
-      }
-      
-      // 按钮类型权限特殊样式
-      if (row.type === 3) {
-        classes.push("row-button");
-      }
-      
-      // 接口类型权限特殊样式
-      if (row.type === 2) {
-        classes.push("row-api");
-      }
-      
-      return classes.join(" ");
+    // 切换展开/折叠状态
+    toggle(row) {
+      // 直接修改原始节点的 expanded 属性
+      const originalNode = row._originalNode;
+
+      // 使用 Vue.set 确保响应式
+      this.$set(originalNode, "expanded", !originalNode.expanded);
+
+      // 增加版本号触发计算属性重新计算
+      this.treeVersion++;
     },
 
-    /* -------------------------
-     *  其他方法
-     * ------------------------- */
+    // 根据权限类型返回对应的CSS类名
+    rowTypeClass(row) {
+      if (row.type === 3) {
+        return "row-button";
+      } else if (row.type === 2) {
+        return "row-api";
+      }
+      return "";
+    },
+
     handleResize() {
       if (this.resizeTimer) clearTimeout(this.resizeTimer);
       this.resizeTimer = setTimeout(() => {
@@ -217,20 +245,40 @@ export default {
           cardHeight - headerHeight - marginBottom - paddingFix;
       }
     },
-    
+
     fetchPermissions() {
       getPermissions()
         .then((res) => {
-          this.permissionTree = res.data.data;
+          // ⭐ 初始化 expanded 为 false（默认折叠状态）
+          const initExpanded = (nodes) => {
+            return nodes.map((node) => {
+              // 创建新对象，确保响应式
+              const newNode = {
+                ...node,
+                expanded: false, // 默认折叠
+              };
+
+              // 递归处理子节点
+              if (newNode.children && newNode.children.length) {
+                newNode.children = initExpanded(newNode.children);
+              }
+
+              return newNode;
+            });
+          };
+
+          this.permissionTree = initExpanded(res.data.data || []);
+          // 重置版本号
+          this.treeVersion = 0;
         })
         .catch(() => {});
     },
-    
+
     openForm(row = null) {
       this.currentPermission = row ? { ...row } : null;
       this.formVisible = true;
     },
-    
+
     addChild(parentRow) {
       this.currentPermission = {
         parent_id: parentRow.id,
@@ -244,12 +292,12 @@ export default {
       };
       this.formVisible = true;
     },
-    
+
     editRow(row) {
       this.currentPermission = { ...row };
       this.formVisible = true;
     },
-    
+
     deleteRow(row) {
       this.$confirm(`确定删除权限 ${row.name} 吗？`, "提示", {
         type: "warning",
@@ -266,7 +314,7 @@ export default {
         })
         .catch(() => {});
     },
-    
+
     typeLabel(type) {
       return (
         {
@@ -276,7 +324,7 @@ export default {
         }[type] || "未知"
       );
     },
-    
+
     typeTag(type) {
       return (
         {
@@ -319,116 +367,231 @@ export default {
       flex: 1;
       min-height: 0;
       overflow: auto;
+      position: relative;
+      border: 1px solid v-bind(border_color);
 
-      /* 表格背景 */
-      ::v-deep .el-table {
+      .permission-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
         background-color: v-bind(tableBackgroundColor);
         color: v-bind(tableTextColor);
-        width: 100%;
       }
 
-      /* 表头 */
-      ::v-deep .el-table__header th {
-        background-color: v-bind(tableHeaderBackgroundColor) !important;
-        color: v-bind(tableHeaderTextColor) !important;
+      /* 固定表头 - 使用伪元素实现下边框 */
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      
+      thead::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background-color: v-bind(table_header_border_color);
+        z-index: 7;
       }
 
-      /* 行背景 */
-      ::v-deep .el-table__row {
-        background-color: v-bind(tableBackgroundColor) !important;
+      thead tr {
+        background-color: v-bind(tableHeaderBackgroundColor);
+        color: v-bind(tableHeaderTextColor);
+        position: relative; /* 确保伪元素定位正确 */
       }
 
-      /* 单元格字体颜色 */
-      ::v-deep .el-table__row td {
-        color: v-bind(tableTextColor) !important;
+      th,
+      td {
+        padding: 8px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
 
-      /* -----------------------------
-       * ⭐ 统一 hover 行（主表格 + 左固定列 + 右固定列）
-       * ----------------------------- */
-      ::v-deep .row-hover > td {
-        background-color: v-bind(tableRowHoverBackgroundColor) !important;
+      /* 行 hover */
+      tbody tr:hover td {
+        background-color: v-bind(tableRowHoverBackgroundColor);
       }
 
-      ::v-deep .el-table__fixed .row-hover > td {
-        background-color: v-bind(tableRowHoverBackgroundColor) !important;
+      /* 树形缩进 */
+      .tree-cell {
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
-      ::v-deep .el-table__fixed-right .row-hover > td {
-        background-color: v-bind(tableRowHoverBackgroundColor) !important;
+      .toggle-btn {
+        cursor: pointer;
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #909399;
+      }
+
+      .toggle-btn:hover {
+        color: #409eff;
+        transform: scale(1.1);
+      }
+
+      .toggle-placeholder {
+        font-size: 12px;
+        width: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* 特殊类型行的样式 - 使用主题控制的颜色 */
+      .row-button td {
+        background-color: v-bind(permissionButtonBgColor) !important;
       }
       
-      /* -----------------------------
-       * ⭐ 按钮类型权限的特殊样式（type=3）
-       * ----------------------------- */
-      ::v-deep .row-button > td {
-        background-color: rgba(103, 194, 58, 0.05) !important;
-        
-        &:hover {
-          background-color: rgba(103, 194, 58, 0.1) !important;
-        }
+      .row-button:hover td {
+        background-color: v-bind(permissionButtonHoverBgColor) !important;
       }
       
-      ::v-deep .el-table__fixed .row-button > td,
-      ::v-deep .el-table__fixed-right .row-button > td {
-        background-color: rgba(103, 194, 58, 0.05) !important;
-        
-        &:hover {
-          background-color: rgba(103, 194, 58, 0.1) !important;
-        }
+      .row-api td {
+        background-color: v-bind(permissionApiBgColor) !important;
       }
       
-      /* 按钮类型权限且悬停时的样式 */
-      ::v-deep .row-button.row-hover > td {
-        background-color: rgba(103, 194, 58, 0.15) !important;
+      .row-api:hover td {
+        background-color: v-bind(permissionApiHoverBgColor) !important;
+      }
+
+      /* 固定列 */
+      .sticky-left {
+        position: sticky;
+        left: 0;
+        z-index: 4;
+        background-color: v-bind(tableBackgroundColor);
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .sticky-right {
+        position: sticky;
+        right: 0;
+        z-index: 4;
+        background-color: v-bind(tableBackgroundColor);
+        box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
       }
       
-      ::v-deep .el-table__fixed .row-button.row-hover > td,
-      ::v-deep .el-table__fixed-right .row-button.row-hover > td {
-        background-color: rgba(103, 194, 58, 0.15) !important;
+      /* 特殊类型行的固定列背景色 */
+      .row-button .sticky-left,
+      .row-button .sticky-right {
+        background-color: v-bind(permissionButtonBgColor) !important;
       }
       
-      /* -----------------------------
-       * ⭐ 接口类型权限的特殊样式（type=2）
-       * ----------------------------- */
-      ::v-deep .row-api > td {
-        background-color: rgba(230, 162, 60, 0.05) !important;
-        
-        &:hover {
-          background-color: rgba(230, 162, 60, 0.1) !important;
-        }
+      .row-button:hover .sticky-left,
+      .row-button:hover .sticky-right {
+        background-color: v-bind(permissionButtonHoverBgColor) !important;
       }
       
-      ::v-deep .el-table__fixed .row-api > td,
-      ::v-deep .el-table__fixed-right .row-api > td {
-        background-color: rgba(230, 162, 60, 0.05) !important;
-        
-        &:hover {
-          background-color: rgba(230, 162, 60, 0.1) !important;
-        }
+      .row-api .sticky-left,
+      .row-api .sticky-right {
+        background-color: v-bind(permissionApiBgColor) !important;
       }
       
-      /* 接口类型权限且悬停时的样式 */
-      ::v-deep .row-api.row-hover > td {
-        background-color: rgba(230, 162, 60, 0.15) !important;
+      .row-api:hover .sticky-left,
+      .row-api:hover .sticky-right {
+        background-color: v-bind(permissionApiHoverBgColor) !important;
       }
-      
-      ::v-deep .el-table__fixed .row-api.row-hover > td,
-      ::v-deep .el-table__fixed-right .row-api.row-hover > td {
-        background-color: rgba(230, 162, 60, 0.15) !important;
+
+      /* 表头中的固定列需要有更高的 z-index */
+      thead .sticky-left,
+      thead .sticky-right {
+        z-index: 6;
+        background-color: v-bind(tableHeaderBackgroundColor);
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
       }
-      
-      /* 操作按钮样式调整 */
-      ::v-deep .el-table__row .el-button--text {
-        color: v-bind(tableTextColor);
-        
-        &:hover {
-          opacity: 0.8;
-        }
+
+      /* 修复表头固定列在滚动时的样式 */
+      thead .sticky-left::after,
+      thead .sticky-right::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0.1) 0%,
+          rgba(0, 0, 0, 0) 100%
+        );
       }
-      
+
+      thead .sticky-right::after {
+        right: auto;
+        left: -4px;
+        background: linear-gradient(
+          270deg,
+          rgba(0, 0, 0, 0.1) 0%,
+          rgba(0, 0, 0, 0) 100%
+        );
+      }
+
+      /* 列宽 */
+      .col-name {
+        width: 200px;
+        min-width: 200px;
+        text-align: left;
+      }
+      .col-code {
+        width: 200px;
+        min-width: 200px;
+        text-align: left;
+      }
+      .col-type {
+        width: 100px;
+        min-width: 100px;
+      }
+      .col-method {
+        width: 100px;
+        min-width: 100px;
+      }
+      .col-path {
+        width: 250px;
+        min-width: 250px;
+        text-align: left;
+      }
+      .col-description {
+        width: 200px;
+        min-width: 200px;
+        text-align: left;
+      }
+      .col-creator {
+        width: 120px;
+        min-width: 120px;
+      }
+      .col-status {
+        width: 100px;
+        min-width: 100px;
+      }
+      .col-actions {
+        width: 180px;
+        min-width: 180px;
+      }
+
+      /* 修复表格滚动时的边框问题 */
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* 确保固定列在滚动时不被遮挡 */
+      .sticky-left,
+      .sticky-right {
+        position: -webkit-sticky; /* Safari 支持 */
+        position: sticky;
+      }
+
       /* Tag标签颜色适配 */
-      ::v-deep .el-tag {
+      .el-tag {
         &.el-tag--primary {
           background-color: rgba(64, 158, 255, 0.1);
           border-color: rgba(64, 158, 255, 0.2);
@@ -448,6 +611,44 @@ export default {
           background-color: rgba(245, 108, 108, 0.1);
           border-color: rgba(245, 108, 108, 0.2);
           color: #f56c6c;
+        }
+      }
+
+      /* 美化滚动条 */
+      &::-webkit-scrollbar {
+        background: rgba(0, 0, 0, 0.05);
+        width: 8px;
+        height: 8px;
+        &:vertical {
+          border-left: 1px solid v-bind(border_color);
+        }
+      }
+      /* 改变滚动条交叉区域背景 - 主题色 */
+      &::-webkit-scrollbar-corner {
+        background: rgba(0, 0, 0, 0.05);
+        border-left: 1px solid v-bind(border_color);
+        border-top: 1px solid v-bind(border_color);
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid v-bind(border_color);
+        border-right: none;
+        border-bottom: none;
+        border-left: none;
+        margin-top: 35px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(144, 147, 153, 0.3);
+        transition: background 0.3s;
+
+        &:hover {
+          background: rgba(144, 147, 153, 0.5);
+        }
+
+        &:active {
+          background: rgba(144, 147, 153, 0.7);
         }
       }
     }

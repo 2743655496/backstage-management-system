@@ -5,7 +5,6 @@ import { registerDynamicRoutes } from '@/router/dynamicRoutes'
 const state = {
     menusList: [],
     menuPermissions: [],
-    permissionMap: {}
 }
 
 const mutations = {
@@ -15,13 +14,9 @@ const mutations = {
     SET_MENU_PERMISSIONS(state, tree) {
         state.menuPermissions = tree
     },
-    SET_PERMISSION_MAP(state, map) {
-        state.permissionMap = map
-    },
     CLEAR_PERMISSIONS(state) {
         state.menusList = []
         state.menuPermissions = []
-        state.permissionMap = {}
     }
 }
 
@@ -29,11 +24,10 @@ const actions = {
     async fetchPermissions({ commit }) {
         try {
             const res = await toGetPermission()
-            const { menus_list, menu_permissions, permission_map } = res.data
+            const { menus_list, menu_permissions } = res.data
 
             commit('SET_MENUS_LIST', menus_list)
             commit('SET_MENU_PERMISSIONS', menu_permissions)
-            commit('SET_PERMISSION_MAP', permission_map)
 
             // 注册动态路由
             registerDynamicRoutes(menus_list)
@@ -49,7 +43,6 @@ const actions = {
 const getters = {
     menusList: state => state.menusList,
     menuPermissions: state => state.menuPermissions,
-    permissionMap: state => state.permissionMap
 }
 
 export default {
