@@ -28,7 +28,7 @@ service.interceptors.response.use(
 
     if (!response) {
       Message.error('网络连接失败，请检查您的网络设置');
-      error.__handled = true; // ✅ 标记已处理
+      error.__handled = true;
       return Promise.reject(error);
     }
 
@@ -40,67 +40,74 @@ service.interceptors.response.use(
           const url = new URL(base.token_refresh, base.baseUrl).toString();
           const res = await axios.post(url, {}, { withCredentials: true });
           if (res.data.code === 200) {
-            // ✅ 刷新成功：重放挂起请求
             requestsQueue.forEach(cb => cb());
             requestsQueue = [];
             return service(config);
           } else {
-            clearRequestQueue(); // ✅ 清空队列
+            clearRequestQueue();
             handleLogout();
             return Promise.reject('未登录或登录已过期');
           }
         } catch (e) {
-          clearRequestQueue(); // ✅ 清空队列
+          clearRequestQueue();
           handleLogout();
           return Promise.reject(e);
         } finally {
           isRefreshing = false;
         }
       } else {
-        // 正在刷新：挂起请求
         return new Promise(resolve => {
           requestsQueue.push(() => resolve(service(config)));
         });
       }
     }
 
+    // 🚫 403 权限不足（你新增的逻辑）
+    if (response.status === 403) {
+      const msg = response?.data?.detail || response?.data?.message || '您没有权限执行此操作';
+      Message.error(msg);
+      error.__handled = true;
+      return Promise.reject(error);
+    }
+
     // ⚠️ 400 参数错误
     if (response.status === 400) {
       const msg = response?.data?.message || '请求参数错误，请检查';
       Message.error(msg);
-      error.__handled = true; // ✅ 标记已处理
+      error.__handled = true;
     }
 
     // 🚫 404 资源未找到
     if (response.status === 404) {
       const msg = response?.data?.message || '请求的资源不存在';
       Message.error(msg);
-      error.__handled = true; // ✅ 标记已处理
+      error.__handled = true;
     }
 
     // 🔥 500 服务器错误
     if (response.status === 500) {
       const msg = response?.data?.message || '服务器内部错误，请稍后再试';
       Message.error(msg);
-      error.__handled = true; // ✅ 标记已处理
+      error.__handled = true;
     }
 
     // ⏱️ 请求超时
     if (error.code === 'ECONNABORTED') {
       Message.error('请求超时，请稍后重试');
-      error.__handled = true; // ✅ 标记已处理
+      error.__handled = true;
     }
 
     // 📦 其他错误（排除 401，避免重复提示）
-    if (![400, 401, 500, 404].includes(response.status)) {
+    if (![400, 401, 403, 404, 500].includes(response.status)) {
       const msg = response?.data?.message || '请求失败，请稍后再试';
       Message.error(msg);
-      error.__handled = true; // ✅ 标记已处理
+      error.__handled = true;
     }
 
     return Promise.reject(error);
   }
 );
+
 
 // ✅ 清空挂起请求队列
 function clearRequestQueue() {

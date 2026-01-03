@@ -1,4 +1,4 @@
-from user_permission.models import RolePermission, Permission
+from user_permission.models import RolePermission, Permission,UserRole
 from user_permission.serializers.permission_serializers import PermissionSerializer
 from django.utils import timezone
 from rest_framework.views import APIView
@@ -7,7 +7,7 @@ from rest_framework import status
 from utils.serializer_errors import extract_error_message
 from utils.decorators import atomic_view
 from utils.validators import strict_validate_fields
-from user_permission.services.permission_service import clear_role_users_permission_cache
+from user_permission.signals.permission_signals import permissions_changed
 
 
 def get_permission_schema(data=None, is_update=False):
@@ -132,8 +132,13 @@ class PermissionCreateView(APIView):
             defaults={"creator_id": request.my_user.id if request.my_user else None}
         )
 
-        # ⭐ 清除管理员角色下所有用户的权限缓存
-        clear_role_users_permission_cache(1)
+        # 找到管理员角色下所有用户
+        admin_user_ids = list(
+            UserRole.objects.filter(role_id=1).values_list("user_id", flat=True)
+        )
+
+        # 触发信号
+        permissions_changed.send(sender=None, user_ids=admin_user_ids)
 
         return Response({
             "message": "权限创建成功，已自动分配给管理员角色",
@@ -168,9 +173,10 @@ class PermissionUpdateView(APIView):
         # ⭐ 找出所有拥有该权限的角色
         role_ids = RolePermission.objects.filter(permission_id=pk).values_list("role_id", flat=True)
 
-        # ⭐ 清除这些角色下所有用户的缓存
-        for rid in role_ids:
-            clear_role_users_permission_cache(rid)
+        # ⭐ 找出所有使用这些角色的用户
+        user_ids = list( UserRole.objects.filter(role_id__in=role_ids).values_list("user_id", flat=True) )
+        # ⭐ 触发信号（自动刷新缓存）
+        permissions_changed.send(sender=None, user_ids=user_ids)
 
         return Response({"message": "权限更新成功"})
 
@@ -196,14 +202,18 @@ class PermissionDeleteView(APIView):
         # ⭐ 找出所有拥有这些权限的角色
         role_ids = RolePermission.objects.filter(permission_id__in=ids).values_list("role_id", flat=True)
 
+        # ⭐ 找出所有拥有这些权限的角色
+        role_ids = RolePermission.objects.filter(permission_id__in=ids).values_list("role_id", flat=True)
+        # ⭐ 找出所有使用这些角色的用户
+        user_ids = list( UserRole.objects.filter(role_id__in=role_ids).values_list("user_id", flat=True) )
+
         # 逻辑删除权限
         Permission.objects.filter(id__in=ids).update(is_deleted=1, update_time=timezone.now())
 
         # 删除角色权限关联
         RolePermission.objects.filter(permission_id__in=ids).delete()
 
-        # ⭐ 清除这些角色下所有用户的缓存
-        for rid in role_ids:
-            clear_role_users_permission_cache(rid)
+        # ⭐ 触发信号（自动刷新缓存）
+        permissions_changed.send(sender=None, user_ids=user_ids)
 
         return Response({"message": "权限及其子权限已删除，角色关联已清理"})

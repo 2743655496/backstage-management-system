@@ -64,7 +64,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 添加你的自定义 JWT 认证中间件
     'user_permission.middlewares.jwt_auth.JWTAuthMiddleware',
-    # 'user_permission.middlewares.permission.PermissionMiddleware',
+    'user_permission.middlewares.permission.PermissionMiddleware',
 ]
 
 ROOT_URLCONF = 'back_stage_management_django.urls'

@@ -8,6 +8,8 @@ from user_permission.utils.image_utils import save_avatar_file
 from utils.decorators import atomic_view
 from utils.serializer_errors import extract_error_message
 from utils.validators import strict_validate_fields
+from user_permission.signals.permission_signals import permissions_changed
+
 
 
 class UserListAPIView(APIView):
@@ -303,6 +305,9 @@ class UserDetailAPIView(APIView):
                             for rid in role_ids
                         ]
                         UserRole.objects.bulk_create(new_roles)
+
+                        # 🔥 自动刷新权限缓存（信号机制）
+                        permissions_changed.send(sender=None, user_ids=[user.id])
 
                     # 返回更新后的数据
                     user_data = UserListSerializer(updated_user, context={'request': request}).data

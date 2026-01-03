@@ -2,11 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator
-from user_permission.models import Role, RolePermission
+from user_permission.models import Role, RolePermission,UserRole
 from user_permission.serializers.role_serializers import RoleSerializer, RoleUpdateCreateSerializer
 from utils.decorators import atomic_view
 from utils.serializer_errors import extract_error_message
 from utils.validators import strict_validate_fields
+from user_permission.signals.permission_signals import permissions_changed
+
 
 
 class RoleListCreateView(APIView):
@@ -285,6 +287,11 @@ class RoleDetailView(APIView):
                         for pid in permission_ids
                     ]
                     RolePermission.objects.bulk_create(new_permissions)
+
+                # 🔥 找到所有使用该角色的用户
+                user_ids = list( UserRole.objects.filter(role_id=role.id).values_list("user_id", flat=True) )
+                # 🔥 触发权限刷新信号（自动删除缓存）
+                permissions_changed.send(sender=None, user_ids=user_ids)
 
                 return Response({
                     'success': True,

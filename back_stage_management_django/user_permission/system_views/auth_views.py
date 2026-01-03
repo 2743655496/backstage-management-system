@@ -247,11 +247,6 @@ class UserPermissionView(APIView):
         user_id = request.my_user.id
         cache_key = f"user:permissions:tree:{user_id}"
 
-        # 尝试从 Redis 获取缓存
-        # cached = RedisClient.get(cache_key)
-        # if cached:
-        #     return Response(json.loads(cached))
-
         # 获取用户角色
         role_ids = UserRole.objects.filter(user_id=user_id).values_list('role_id', flat=True)
 
@@ -272,7 +267,6 @@ class UserPermissionView(APIView):
         menus = Menu.objects.filter(id__in=menu_ids, status=1, is_deleted=0).order_by('sort')
         menus_list = []
 
-        # 构建菜单树
         def build_tree(menu_list, parent_id=0):
             tree = []
             for menu in menu_list:
@@ -287,7 +281,6 @@ class UserPermissionView(APIView):
                     }
                     tree.append(item)
 
-                    # 非根节点加入 menus_list（用于前端路由）
                     if parent_id != 0:
                         menus_list.append({
                             'id': menu.id,
@@ -301,30 +294,32 @@ class UserPermissionView(APIView):
 
         # -----------------------------
         # ② 接口权限（type=2）
-        # 后端中间件使用
+        # ⭐ 按方法分组结构：GET/POST/PUT/DELETE
         # -----------------------------
-        api_permissions = {}
+        api_permissions = {
+            "GET": [],
+            "POST": [],
+            "PUT": [],
+            "DELETE": []
+        }
 
-        for perm in permissions.filter(type=2):
-            menu = Menu.objects.filter(id=perm.menu_id, is_deleted=0).first()
-            if not menu or not menu.path:
+        api_perms = permissions.filter(type=2).values("api_path", "api_method")
+
+        for perm in api_perms:
+            api_path = perm["api_path"]
+            api_method = perm["api_method"].upper()
+
+            if not api_path:
                 continue
 
-            api_path = perm.api_path
-            api_method = perm.api_method.upper()
-
-            if api_path not in api_permissions:
-                api_permissions[api_path] = []
-
-            api_permissions[api_path].append(api_method)
+            # 只加入合法方法
+            if api_method in api_permissions:
+                api_permissions[api_method].append(api_path)
 
         # -----------------------------
-        # ④ 所有权限 code（通用）
-        # 后端中间件也可使用
+        # ③ 所有权限 code（通用）
         # -----------------------------
-        permission_codes = list(
-            permissions.values_list("code", flat=True)
-        )
+        permission_codes = list(permissions.values_list("code", flat=True))
 
         # -----------------------------
         # 最终返回结构
@@ -332,12 +327,12 @@ class UserPermissionView(APIView):
         result = {
             "menus_list": menus_list,
             "menu_permissions": menu_permissions,
-            "api_permissions": api_permissions,           # ⭐ 后端接口权限控制
-            "permission_codes": permission_codes          # ⭐ 通用权限 code 列表
+            "api_permissions": api_permissions,   # ⭐ 现在是按方法分组的结构
+            "permission_codes": permission_codes
         }
 
-        # 缓存结果（30分钟）
         RedisClient.set(cache_key, json.dumps(result), ex=1800)
 
         return Response(result)
+
 
