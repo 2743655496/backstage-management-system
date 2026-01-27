@@ -52,9 +52,9 @@
     <div class="drawer-footer">
       <el-button @click="handleClose">取消</el-button>
       <el-button @click="resetForm">重置</el-button>
-      <el-button type="primary" @click="submitForm" :loading="loading"
-        >确认</el-button
-      >
+      <el-button type="primary" @click="submitForm" :loading="loading">
+        确认
+      </el-button>
     </div>
   </el-drawer>
 </template>
@@ -71,7 +71,7 @@ export default {
   name: "RoleForm",
   props: {
     visible: Boolean,
-    roleId: { type: [Number, String], default: null }, // 改为只传ID
+    roleId: { type: [Number, String], default: null },
   },
   data() {
     return {
@@ -82,7 +82,7 @@ export default {
         status: 1,
         permissions: [],
       },
-      permissions: [], // 单独管理树形组件的选中状态
+      permissions: [],
       permissionTree: [],
       treeProps: {
         children: "children",
@@ -105,101 +105,72 @@ export default {
       },
     };
   },
+
   watch: {
     visible: {
       immediate: true,
       handler(val) {
         if (val) {
-          // ✅ 打开弹窗后清除表单验证状态
           this.$nextTick(() => {
-            if (this.$refs.formRef) {
-              this.$refs.formRef.clearValidate();
-            }
+            this.$refs.formRef?.clearValidate();
           });
-          this.loadData();
+          this.loadData(); // ⭐ 只在这里加载一次
         } else {
-          if(this.form.id){
+          if (this.form.id) {
             this.resetForm();
           }
         }
       },
     },
-    roleId: {
-      immediate: true,
-      handler(val) {
-        if (val && this.visible) {
-          this.loadRoleDetail();
-        }
-      },
-    },
   },
-  methods: {
-    // 加载权限数据和角色详情
-    async loadData() {
-      try {
-        this.loading = true;
 
-        // 并行加载权限数据和角色详情
+  methods: {
+    async loadData() {
+      this.loading = true;
+      try {
         await Promise.all([
           this.loadPermissions(),
           this.roleId ? this.loadRoleDetail() : Promise.resolve(),
         ]);
-      } catch (error) {
-        console.error("加载数据失败:", error);
-        this.$message.error("加载数据失败");
       } finally {
         this.loading = false;
       }
     },
 
-    // 加载权限数据
     async loadPermissions() {
-      try {
-        const res = await getPermissions();
-        const raw = res.data?.data || [];
-        this.permissionTree = this.transformPermissions(raw);
-      } catch (error) {
-        console.error("加载权限数据失败:", error);
-        throw error;
-      }
+      const res = await getPermissions();
+      const raw = res.data?.data || [];
+      this.permissionTree = this.transformPermissions(raw);
     },
 
-    // 加载角色详情
     async loadRoleDetail() {
-      try {
-        const res = await toGetRoleDetail(this.roleId);
-        if (res.data && res.data.success) {
-          const roleData = res.data.data;
-          this.form = {
-            id: roleData.id,
-            name: roleData.name || "",
-            code: roleData.code || "",
-            description: roleData.description || "",
-            status: roleData.status || 1,
-            permissions: Array.isArray(roleData.permissions)
-              ? roleData.permissions
-              : [],
-          };
+      const res = await toGetRoleDetail(this.roleId);
+      if (res.data && res.data.success) {
+        const roleData = res.data.data;
+        this.form = {
+          id: roleData.id,
+          name: roleData.name || "",
+          code: roleData.code || "",
+          description: roleData.description || "",
+          status: roleData.status || 1,
+          permissions: Array.isArray(roleData.permissions)
+            ? roleData.permissions
+            : [],
+        };
 
-          // 设置树形组件的选中状态
-          this.permissions = this.extractLeafPermissionIds(
-            this.permissionTree,
-            this.form.permissions
-          );
+        this.permissions = this.extractLeafPermissionIds(
+          this.permissionTree,
+          this.form.permissions
+        );
 
-          this.$nextTick(() => {
-            this.setTreeCheckedKeys();
-          });
-        }
-      } catch (error) {
-        console.error("加载角色详情失败:", error);
-        throw error;
+        this.$nextTick(() => {
+          this.setTreeCheckedKeys();
+        });
       }
     },
 
     extractLeafPermissionIds(tree, selectedIds) {
       const leafIds = [];
-
       const traverse = (nodes) => {
         for (const node of nodes) {
           const hasChildren =
@@ -212,19 +183,14 @@ export default {
           }
         }
       };
-
       traverse(tree);
       return leafIds;
     },
 
-    // 设置树形组件选中状态
     setTreeCheckedKeys() {
-      if (this.$refs.treeRef && Array.isArray(this.permissions)) {
-        this.$refs.treeRef.setCheckedKeys(this.permissions);
-      }
+      this.$refs.treeRef?.setCheckedKeys(this.permissions);
     },
 
-    // 转换权限数据格式
     transformPermissions(list) {
       return list
         .filter((item) => item.status === 1)
@@ -237,14 +203,8 @@ export default {
         }));
     },
 
-    // 处理权限选择
     handlePermissionCheck(checkedNode, checkedInfo) {
-      // 只更新显示用的权限列表，不更新form.permissions
-      const checkedKeys = checkedInfo.checkedKeys || [];
-      this.permissions = checkedKeys;
-
-      console.log("当前显示的权限ID:", this.permissions);
-      console.log("完全选中的节点:", checkedKeys);
+      this.permissions = checkedInfo.checkedKeys || [];
     },
 
     handleClose() {
@@ -252,14 +212,10 @@ export default {
     },
 
     resetForm() {
-      if (this.$refs.formRef) {
-        // ✅ 先重置表单数据，再清除验证状态
-        this.$refs.formRef.resetFields();
-        // ✅ 额外调用 clearValidate 确保验证状态完全清除
-        this.$nextTick(() => {
-          this.$refs.formRef.clearValidate();
-        });
-      }
+      this.$refs.formRef?.resetFields();
+      this.$nextTick(() => {
+        this.$refs.formRef?.clearValidate();
+      });
 
       this.form = {
         name: "",
@@ -276,13 +232,11 @@ export default {
     },
 
     async submitForm() {
+      this.loading = true;
       try {
-        this.loading = true;
-
         const valid = await this.$refs.formRef.validate();
         if (!valid) return;
 
-        // 获取权限 ID 列表（包含半选中的父节点）
         let checkedKeys = [];
         let halfCheckedKeys = [];
         if (this.$refs.treeRef) {
@@ -293,7 +247,6 @@ export default {
         const permissionIds = [...checkedKeys, ...halfCheckedKeys];
         const isEdit = !!this.form.id;
 
-        // 构造提交参数
         const payload = {
           name: this.form.name,
           code: this.form.code,
@@ -303,24 +256,15 @@ export default {
         };
 
         if (isEdit) {
-          payload.action = "update"; // ✅ 仅编辑时添加 action 字段
+          payload.action = "update";
           await toUpdateRole(this.form.id, payload);
         } else {
-          await toAddRole(payload); // ✅ 新增时不传 action
+          await toAddRole(payload);
         }
 
         this.$message.success(isEdit ? "角色修改成功" : "角色添加成功");
         this.$emit("refresh");
         this.handleClose();
-      } catch (error) {
-        if (!error.__handled) {
-          const isEdit = !!this.form.id;
-          const msg =
-            error.response?.data?.error || error.message || isEdit
-              ? "角色修改失败"
-              : "角色添加失败";
-          this.$message.error(msg);
-        }
       } finally {
         this.loading = false;
       }

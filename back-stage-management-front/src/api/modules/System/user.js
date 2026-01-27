@@ -28,3 +28,4 @@ export const toUpdateUser = (id, params) => {
 export const toGetUserDetail = (id) => {
   return ajax.get(`${base.get_user_detail}${id}/`)
 }
+

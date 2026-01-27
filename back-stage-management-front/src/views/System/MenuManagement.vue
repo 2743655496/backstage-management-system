@@ -7,6 +7,7 @@
           type="primary"
           icon="el-icon-plus"
           @click="openForm()"
+          v-permission="['menu:system:menu:add_button']"
         >
           新增菜单
         </el-button>
@@ -78,10 +79,11 @@
 
                 <!-- 右侧固定列 -->
                 <td class="sticky-right col-actions" align="center">
-                  <el-button type="text" size="small" @click="addChild(row)">
+                  <el-button type="text" size="small" @click="addChild(row)" v-permission="['menu:system:menu:add_button']">
                     新增下级
                   </el-button>
                   <el-button
+                  v-permission="['menu:system:menu:update_button']"
                     type="text"
                     size="small"
                     @click="editRow(row)"
@@ -90,6 +92,7 @@
                     编辑
                   </el-button>
                   <el-button
+                  v-permission="['menu:system:menu:delete_button']"
                     type="text"
                     size="small"
                     @click="deleteRow(row)"
@@ -97,6 +100,18 @@
                   >
                     删除
                   </el-button>
+                  <span
+                      class="no-permission-tag"
+                      v-permission="{
+                        mode: 'not',
+                        codes: [
+                        'menu:system:menu:add_button',
+                          'menu:system:menu:delete_button',
+                          'menu:system:menu:update_button',
+                        ],
+                      }"
+                      >无操作权限</span
+                    >
                 </td>
               </tr>
             </template>

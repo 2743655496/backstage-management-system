@@ -313,6 +313,7 @@
       <el-card class="card">
         <div class="header">
           <el-button
+            v-permission="['menu:system:role:add_button']"
             type="primary"
             icon="el-icon-plus"
             @click="openForm()"
@@ -346,28 +347,30 @@
 
             <tbody>
               <template v-for="row in roleList">
-                <tr 
-                  :key="row.id"
-                  :class="rowStatusClass(row)"
-                >
+                <tr :key="row.id" :class="rowStatusClass(row)">
                   <!-- 左侧固定列：角色名称 -->
                   <td class="sticky-left col-name">
                     {{ row.name }}
                   </td>
 
                   <td class="col-id">{{ row.id }}</td>
-                  <td class="col-creator" align="center">{{ row.creator_name || '-' }}</td>
+                  <td class="col-creator" align="center">
+                    {{ row.creator_name || "-" }}
+                  </td>
                   <td class="col-status" align="center">
                     <el-tag :type="row.status === 1 ? 'success' : 'danger'">
                       {{ row.status === 1 ? "启用" : "禁用" }}
                     </el-tag>
                   </td>
-                  <td class="col-description">{{ row.description || '-' }}</td>
-                  <td class="col-time">{{ formatDateTime(row.create_time) }}</td>
+                  <td class="col-description">{{ row.description || "-" }}</td>
+                  <td class="col-time">
+                    {{ formatDateTime(row.create_time) }}
+                  </td>
 
                   <!-- 右侧固定列 -->
                   <td class="sticky-right col-actions" align="center">
                     <el-button
+                      v-permission="['menu:system:role:update_button']"
                       type="text"
                       size="small"
                       @click="editRow(row)"
@@ -376,6 +379,7 @@
                       编辑
                     </el-button>
                     <el-button
+                      v-permission="['menu:system:role:delete_button']"
                       type="text"
                       size="small"
                       style="color: red"
@@ -383,6 +387,17 @@
                     >
                       删除
                     </el-button>
+                    <span
+                      class="no-permission-tag"
+                      v-permission="{
+                        mode: 'not',
+                        codes: [
+                          'menu:system:role:delete_button',
+                          'menu:system:role:update_button',
+                        ],
+                      }"
+                      >无操作权限</span
+                    >
                   </td>
                 </tr>
               </template>
@@ -494,16 +509,16 @@ export default {
     // 根据状态返回CSS类名
     rowStatusClass(row) {
       if (row.status === 0) {
-        return 'row-disabled';
+        return "row-disabled";
       }
-      return '';
+      return "";
     },
 
     // 鼠标悬停处理
     handleRowMouseEnter(row) {
       this.hoverRowId = row.id;
     },
-    
+
     handleRowMouseLeave() {
       this.hoverRowId = null;
     },
@@ -560,7 +575,11 @@ export default {
         const paginationHeight = 50; // 分页器高度
 
         this.tableHeight =
-          cardHeight - headerHeight - marginBottom - paddingFix - paginationHeight;
+          cardHeight -
+          headerHeight -
+          marginBottom -
+          paddingFix -
+          paginationHeight;
       }
     },
 
@@ -804,7 +823,7 @@ export default {
           top: 0;
           z-index: 5;
         }
-        
+
         thead::after {
           content: "";
           position: absolute;
@@ -940,6 +959,7 @@ export default {
         .col-actions {
           width: 180px;
           min-width: 180px;
+          
         }
 
         /* 修复表格滚动时的边框问题 */

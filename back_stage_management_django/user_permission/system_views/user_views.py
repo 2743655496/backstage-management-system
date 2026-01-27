@@ -2,14 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator
-from user_permission.models import User,UserRole,Role,Department
+from user_permission.models import User, UserRole, Role, Department
 from user_permission.serializers.user_serializers import UserUpdateCreateSerializer, UserListSerializer
 from user_permission.utils.image_utils import save_avatar_file
 from utils.decorators import atomic_view
 from utils.serializer_errors import extract_error_message
 from utils.validators import strict_validate_fields
 from user_permission.signals.permission_signals import permissions_changed
-
 
 
 class UserListAPIView(APIView):
@@ -371,3 +370,4 @@ class UserDeleteAPIView(APIView):
                 'success': False,
                 'message': f'删除用户失败: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

@@ -21,3 +21,4 @@ export const toAddRole = (params) => {
 export const toUpdateRole = (id, params) => {
   return ajax.post(`${base.update_role}${id}/`, params)
 }
+

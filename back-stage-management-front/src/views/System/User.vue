@@ -383,6 +383,7 @@
       <el-card class="card">
         <div class="header">
           <el-button
+          v-permission="['menu:system:user:add_button']"
             type="primary"
             icon="el-icon-plus"
             @click="openForm()"
@@ -501,6 +502,7 @@
                   <!-- 右侧固定列 -->
                   <td class="sticky-right col-actions" align="center">
                     <el-button
+                    v-permission="['menu:system:user:update_button']"
                       type="text"
                       size="small"
                       style="color: #67c23a"
@@ -509,6 +511,7 @@
                       编辑
                     </el-button>
                     <el-button
+                    v-permission="['menu:system:user:delete_button']"
                       type="text"
                       size="small"
                       style="color: red"
@@ -516,6 +519,17 @@
                     >
                       删除
                     </el-button>
+                    <span
+                      class="no-permission-tag"
+                      v-permission="{
+                        mode: 'not',
+                        codes: [
+                          'menu:system:user:delete_button',
+                          'menu:system:user:update_button',
+                        ],
+                      }"
+                      >无操作权限</span
+                    >
                   </td>
                 </tr>
               </template>

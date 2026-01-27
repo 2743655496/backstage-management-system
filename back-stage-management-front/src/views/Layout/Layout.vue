@@ -105,7 +105,7 @@ export default {
             });
           }
         });
-      }, 5 * 60 * 1000); // 每5分钟轮询
+      }, 1 * 60 * 1000); // 每1分钟轮询
     },
     handleKeydown(e) {
       if (e.altKey && e.key.toLowerCase() === "l") {

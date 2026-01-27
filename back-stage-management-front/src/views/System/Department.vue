@@ -3,6 +3,7 @@
     <el-card class="card">
       <div class="header">
         <el-button
+          v-permission="['menu:system:department:add_button']"
           size="medium"
           type="primary"
           icon="el-icon-plus"
@@ -58,11 +59,11 @@
                 <td class="col-code">{{ row.code }}</td>
                 <td class="col-description">{{ row.description }}</td>
                 <td class="col-manager" align="center">
-                  {{ row.manager?.real_name || '-' }}
+                  {{ row.manager?.real_name || "-" }}
                 </td>
                 <td class="col-sort" align="center">{{ row.sort }}</td>
                 <td class="col-creator" align="center">
-                  {{ row.creator?.real_name || '-' }}
+                  {{ row.creator?.real_name || "-" }}
                 </td>
                 <td class="col-status" align="center">
                   <el-tag :type="row.status === 1 ? 'success' : 'danger'">
@@ -72,10 +73,17 @@
 
                 <!-- 右侧固定列 -->
                 <td class="sticky-right col-actions" align="center">
-                  <el-button type="text" size="small" @click="addChild(row)" style="color: #409EFF">
+                  <el-button
+                    type="text"
+                    size="small"
+                    @click="addChild(row)"
+                    style="color: #409eff"
+                    v-permission="['menu:system:department:add_button']"
+                  >
                     新增下级
                   </el-button>
                   <el-button
+                    v-permission="['menu:system:department:update_button']"
                     type="text"
                     size="small"
                     @click="editRow(row)"
@@ -84,6 +92,7 @@
                     编辑
                   </el-button>
                   <el-button
+                    v-permission="['menu:system:department:delete_button']"
                     type="text"
                     size="small"
                     @click="deleteRow(row)"
@@ -91,6 +100,18 @@
                   >
                     删除
                   </el-button>
+                  <span
+                    class="no-permission-tag"
+                    v-permission="{
+                      mode: 'not',
+                      codes: [
+                        'menu:system:department:add_button',
+                        'menu:system:department:delete_button',
+                        'menu:system:department:update_button',
+                      ],
+                    }"
+                    >无操作权限</span
+                  >
                 </td>
               </tr>
             </template>
@@ -342,7 +363,7 @@ export default {
         top: 0;
         z-index: 5;
       }
-      
+
       thead::after {
         content: "";
         position: absolute;
@@ -350,7 +371,9 @@ export default {
         right: 0;
         bottom: 0;
         height: 1px;
-        background-color: v-bind(table_header_border_color); /* 使用 table_header_border_color */
+        background-color: v-bind(
+          table_header_border_color
+        ); /* 使用 table_header_border_color */
         z-index: 7;
       }
 

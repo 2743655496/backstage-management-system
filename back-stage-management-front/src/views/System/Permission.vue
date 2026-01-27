@@ -7,6 +7,7 @@
           type="primary"
           icon="el-icon-plus"
           @click="openForm()"
+          v-permission="['menu:system:permission:add_button']"
         >
           新增权限
         </el-button>
@@ -81,6 +82,7 @@
                     size="small"
                     @click="addChild(row)"
                     style="color: #409eff"
+                    v-permission="['menu:system:permission:add_button']"
                   >
                     新增下级
                   </el-button>
@@ -89,10 +91,12 @@
                     size="small"
                     @click="editRow(row)"
                     style="color: #67c23a"
+                    v-permission="['menu:system:permission:update_button']"
                   >
                     编辑
                   </el-button>
                   <el-button
+                  v-permission="['menu:system:permission:delete_button']"
                     type="text"
                     size="small"
                     @click="deleteRow(row)"
@@ -100,6 +104,18 @@
                   >
                     删除
                   </el-button>
+                  <span
+                      class="no-permission-tag"
+                      v-permission="{
+                        mode: 'not',
+                        codes: [
+                        'menu:system:permission:add_button',
+                          'menu:system:permission:delete_button',
+                          'menu:system:permission:update_button',
+                        ],
+                      }"
+                      >无操作权限</span
+                    >
                 </td>
               </tr>
             </template>

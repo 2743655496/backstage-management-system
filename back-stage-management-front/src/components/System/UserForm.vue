@@ -176,6 +176,7 @@ export default {
     };
     return {
       form: {
+        id: null,
         username: "",
         password: "",
         real_name: "",
@@ -186,27 +187,19 @@ export default {
         role_ids: [],
         avatar: "",
       },
-      departmentTree: [], // 直接使用树形数据
+      departmentTree: [],
       roleList: [],
       loading: false,
       randomAvatars: [
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fww2.sinaimg.cn%2Fmw690%2F0069ziSmly1hy8uhatakkj30sg0sggo5.jpg&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D2424897188%2C89842895%26fm%3D253%26fmt%3Dauto%26app%3D120%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fq7.itc.cn%2Fq_70%2Fimages03%2F20240512%2F8d063c75d60d4c9eb88e1956be2d873d.jpeg&thumburl=https%3A%2F%2Fimg1.baidu.com%2Fit%2Fu%3D2109052374%2C604822922%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips1.baidu.com%2Fit%2Fu%3D3834598948%2C2418503949%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg2.baidu.com%2Fit%2Fu%3D1781167939%2C4113493204%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D2786175775%2C3350769033%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg1.baidu.com%2Fit%2Fu%3D1999384104%2C253229540%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D1294304757%2C2284873529%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D114560984%2C2684912278%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D1294304757%2C2284873529%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D114560984%2C2684912278%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fn.sinaimg.cn%2Fsinakd20115%2F448%2Fw1024h1024%2F20240505%2Ff666-95c7f86ffcf274cdc68f4b646e52cec3.jpg&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D2201786265%2C1996910509%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fww1.sinaimg.cn%2Fmw690%2F00854yfugy1hs8i93ltofj30j60j6dgx.jpg&thumburl=https%3A%2F%2Fimg1.baidu.com%2Fit%2Fu%3D1296132577%2C3216763945%26fm%3D253%26fmt%3Dauto%26app%3D120%26f%3DJPEG%3Fw%3D500%26h%3D500",
-        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fc-ssl.dtstatic.com%2Fuploads%2Fblog%2F202203%2F05%2F20220305205735_f6563.thumb.400_0.jpeg&thumburl=https%3A%2F%2Fimg0.baidu.com%2Fit%2Fu%3D1056874060%2C3663579464%26fm%3D253%26fmt%3Dauto%26app%3D138%26f%3DJPEG%3Fw%3D400%26h%3D400",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fww2.sinaimg.cn%2Fmw690%2F0069ziSmly1hy8uhatakkj30sg0sggo5.jpg",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fq7.itc.cn%2Fq_70%2Fimages03%2F20240512%2F8d063c75d60d4c9eb88e1956be2d873d.jpeg",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips1.baidu.com%2Fit%2Fu%3D3834598948%2C2418503949%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D2786175775%2C3350769033%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fgips2.baidu.com%2Fit%2Fu%3D1294304757%2C2284873529%26fm%3D3074%26app%3D3074%26f%3DPNG%3Fw%3D2048%26h%3D2048",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fn.sinaimg.cn%2Fsinakd20115%2F448%2Fw1024h1024%2F20240505%2Ff666-95c7f86ffcf274cdc68f4b646e52cec3.jpg",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fww1.sinaimg.cn%2Fmw690%2F00854yfugy1hs8i93ltofj30j60j6dgx.jpg",
+        "https://image.baidu.com/search/down?tn=download&ipn=dwnl&word=download&ie=utf8&fr=result&url=https%3A%2F%2Fc-ssl.dtstatic.com%2Fuploads%2Fblog%2F202203%2F05%2F20220305205735_f6563.thumb.400_0.jpeg",
       ],
-      passwordValid: {
-        firstLetter: false,
-        hasNumber: false,
-        hasLetter: false,
-        hasSpecialChar: false,
-        minLength: false,
-      },
       rules: {
         username: [
           { required: true, message: "请输入用户名", trigger: "blur" },
@@ -238,56 +231,42 @@ export default {
       },
     };
   },
+
   watch: {
     visible: {
       immediate: true,
       handler(val) {
         if (val) {
-          // ✅ 打开弹窗后清除表单验证状态
           this.$nextTick(() => {
-            if (this.$refs.formRef) {
-              this.$refs.formRef.clearValidate();
-            }
+            this.$refs.formRef?.clearValidate();
           });
-          this.loadData();
+          this.loadData(); // ⭐ 只在这里加载一次
         } else {
-          if(this.form.id){
+          if (this.form.id) {
             this.resetForm();
           }
         }
       },
     },
-    userId: {
-      immediate: true,
-      handler(val) {
-        if (val && this.visible) {
-          this.loadUserDetail();
-        }
-      },
-    },
   },
+
   methods: {
     async loadData() {
+      this.loading = true;
       try {
-        this.loading = true;
         await Promise.all([
           this.loadDepartments(),
           this.loadRoles(),
           this.userId ? this.loadUserDetail() : Promise.resolve(),
         ]);
-      } catch (error) {
-        console.error("加载数据失败:", error);
-        this.$message.error("加载数据失败");
       } finally {
         this.loading = false;
       }
     },
 
-    // 加载部门数据 - 直接使用返回的树形结构
     async loadDepartments() {
       try {
         const res = await getDepartments();
-        // 根据您的数据结构，直接使用返回的数据
         this.departmentTree = res.data?.data || [];
         console.log("部门树形数据:", this.departmentTree);
       } catch (error) {
@@ -296,7 +275,6 @@ export default {
       }
     },
 
-    // 加载角色列表
     async loadRoles() {
       try {
         const res = await getRoles();
@@ -307,7 +285,6 @@ export default {
       }
     },
 
-    // 加载用户详情
     async loadUserDetail() {
       try {
         const res = await toGetUserDetail(this.userId);
@@ -376,15 +353,13 @@ export default {
     },
 
     resetForm() {
-      if (this.$refs.formRef) {
-        // ✅ 先重置表单数据，再清除验证状态
-        this.$refs.formRef.resetFields();
-        // ✅ 额外调用 clearValidate 确保验证状态完全清除
-        this.$nextTick(() => {
-          this.$refs.formRef.clearValidate();
-        });
-      }
+      this.$refs.formRef?.resetFields();
+      this.$nextTick(() => {
+        this.$refs.formRef?.clearValidate();
+      });
+
       this.form = {
+        id: null,
         username: "",
         password: "",
         real_name: "",
@@ -398,8 +373,8 @@ export default {
     },
 
     async submitForm() {
+      this.loading = true;
       try {
-        this.loading = true;
         const valid = await this.$refs.formRef.validate();
         if (!valid) return;
 
