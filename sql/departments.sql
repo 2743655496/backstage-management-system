@@ -1,0 +1,2 @@
+INSERT INTO `departments` (`id`, `name`, `parent_id`, `code`, `description`, `manager_id`, `sort`, `status`, `creator_id`, `create_time`, `update_time`, `is_deleted`) VALUES (1, '超级管理员', 0, '001', '超级管理部门', 1, 0, 1, 1, '2025-09-11 20:56:12.000000', '2025-11-06 12:26:28.512235', 0);
+INSERT INTO `departments` (`id`, `name`, `parent_id`, `code`, `description`, `manager_id`, `sort`, `status`, `creator_id`, `create_time`, `update_time`, `is_deleted`) VALUES (32, '111', 1, '111', '1111', 1, 0, 1, 1, '2026-01-02 13:33:42.057056', '2026-01-28 04:36:15.487134', 1);

@@ -11,8 +11,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
-from concurrent_log_handler import ConcurrentRotatingFileHandler
+
+# 加载 99.env 文件（本地开发 & Docker 都生效）
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,15 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8pf_9*jnm8@)6(#bn=4ojbot+pcc^cszvpk&@)b)uux*sj=bq6'
+SECRET_KEY = os.environ.get("SECRET_KEY", 'django-insecure-000008pf_9*jnm8@)6(#bn=4ojbot+pcc^cszvpk&@)b)uux*sj=bq6')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-HOST = '192.168.10.143'
+raw_hosts = os.environ.get("ALLOWED_HOSTS", "")
 
-ALLOWED_HOSTS = [f'{HOST}', 'localhost','127.0.0.1']
+if raw_hosts == "*" or raw_hosts == "*,*":
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 
 # Application definition
 
@@ -100,11 +106,11 @@ WSGI_APPLICATION = 'back_stage_management_django.wsgi.application'
 DATABASES = {
     'default': {  # 默认数据库配置（Django 支持多数据库配置）
         'ENGINE': 'django.db.backends.mysql',  # 指定使用 MySQL 后端
-        'NAME': 'backstage',  # 数据库名（需提前创建）
-        'USER': 'root',  # MySQL 用户名
-        'PASSWORD': '111111',  # MySQL 密码
-        'HOST': 'localhost',  # 数据库服务器地址（默认本地）
-        'PORT': '3306',  # MySQL 默认端口
+        'NAME': os.environ.get("MYSQL_DB", "backstage"),  # 数据库名（需提前创建）
+        'USER': os.environ.get("MYSQL_USER", "root"),  # MySQL 用户名
+        'PASSWORD': os.environ.get("MYSQL_PASSWORD", "111111"),  # MySQL 密码
+        'HOST': os.environ.get("MYSQL_HOST", "localhost"),  # 数据库服务器地址（默认本地）
+        'PORT': os.environ.get("MYSQL_PORT", "3306"),  # MySQL 默认端口
         'OPTIONS': {  # 额外选项（关键配置）
             'charset': 'utf8mb4',  # 字符集设置为 utf8mb4
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",  # 初始化 SQL 命令
@@ -158,18 +164,18 @@ JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 # 建议生产环境将这些配置放到环境变量中，避免敏感信息写死在代码里
 
 # Redis 服务器地址（IP 或域名）
-REDIS_HOST = "127.0.0.1"
+REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
 
 # Redis 端口（默认 6379）
-REDIS_PORT = 6379
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 # Redis 数据库编号（0~15），不同编号之间数据隔离
 # 可以用不同 DB 存储不同业务数据，例如 0 存缓存，1 存消息队列
-REDIS_DB = 0
+REDIS_DB = int(os.environ.get("REDIS_PORT", 6379))
 
 # Redis 连接密码（如果 Redis 设置了 requirepass，这里必须填写）
 # 如果没有密码，保持 None
-REDIS_PASSWORD = None
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", None)
 
 # Redis 连接池最大连接数
 # 限制同时连接 Redis 的最大数量，防止连接过多导致资源耗尽
@@ -243,10 +249,10 @@ if not DEBUG:
         },
         'loggers': {
             'concurrent_log_handler': {
-                    'handlers': ['console'],
-                    'level': 'WARNING',
-                    'propagate': False
-                },
+                'handlers': ['console'],
+                'level': 'WARNING',
+                'propagate': False
+            },
             'django': {  # Django 自带日志
                 'handlers': ['console', 'info_file', 'error_file'],
                 'level': LOG_LEVEL,
@@ -263,14 +269,21 @@ if not DEBUG:
                 'propagate': False
             }
         },
-    'root': {
+        'root': {
             'handlers': ['console', 'info_file', 'error_file'],
             'level': LOG_LEVEL,
         }
     }
 
 # 跨域配置
-CORS_ALLOWED_ORIGINS = ["http://localhost:8080", f"http://{HOST}:8080", f"https://{HOST}:8080"]
+raw_cors = os.environ.get("CORS_ORIGINS", "")
+
+if raw_cors == "*" or raw_cors == "*,*":
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip() for origin in raw_cors.split(",") if origin.strip()
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -285,4 +298,4 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = list(default_headers)
 
 # nginx中图片应存放位置
-MEDIA_ROOT = "E:\\web_work\\back-stage-management\\back-stage-management-front\\public"
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "E:\\web_work\\back-stage-management\\back-stage-management-front\\public")
