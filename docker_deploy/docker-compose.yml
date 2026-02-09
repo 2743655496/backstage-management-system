@@ -1,12 +1,31 @@
-version: "3.9"
-
 services:
+  mysql:
+    image: mysql:8.0.36
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 111111
+      MYSQL_DATABASE: backstage
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
   backend:
     build:
-      context: ./backend
+      context: ../back_stage_management_django
+      dockerfile: ../docker_deploy/backend/Dockerfile
     container_name: backend
     env_file:
-      - ./backend/.env.prod
+      - ../back_stage_management_django/.env.prod
+    depends_on:
+      - mysql
+      - redis
     volumes:
       - backend_static:/app/static
     expose:
@@ -14,10 +33,13 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../back-stage-management-front
+      dockerfile: ../docker_deploy/frontend/Dockerfile
     container_name: frontend
     depends_on:
       - backend
+    volumes:
+      - frontend_dist:/dist
 
   nginx:
     image: nginx:1.25
@@ -35,5 +57,6 @@ services:
       - backend_static:/app/static
 
 volumes:
+  mysql_data:
   backend_static:
   frontend_dist:

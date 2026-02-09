@@ -13,8 +13,12 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
+# -------------------- 让 Django 使用 PyMySQL 替代 MySQLdb（mysqlclient） --------------------
+import pymysql
+pymysql.install_as_MySQLdb()
+# --------------------------------------------------------------------------------------------
 
-# 加载 99.env 文件（本地开发 & Docker 都生效）
+# 加载 .env 文件（本地开发 & Docker 都生效）
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -171,7 +175,7 @@ REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 # Redis 数据库编号（0~15），不同编号之间数据隔离
 # 可以用不同 DB 存储不同业务数据，例如 0 存缓存，1 存消息队列
-REDIS_DB = int(os.environ.get("REDIS_PORT", 6379))
+REDIS_DB = int(os.environ.get("REDIS_DB", 6379))
 
 # Redis 连接密码（如果 Redis 设置了 requirepass，这里必须填写）
 # 如果没有密码，保持 None
@@ -299,3 +303,5 @@ CORS_ALLOW_HEADERS = list(default_headers)
 
 # nginx中图片应存放位置
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "E:\\web_work\\back-stage-management\\back-stage-management-front\\public")
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")

@@ -1,1 +1,0 @@
-INSERT INTO `roles` (`id`, `name`, `code`, `description`, `status`, `creator_id`, `create_time`, `update_time`, `is_deleted`) VALUES (1, '超级管理员', 'super_admin', '系统最高权限', 1, 1, '2025-09-11 20:50:42.000000', '2025-09-11 20:50:46.000000', 0);
