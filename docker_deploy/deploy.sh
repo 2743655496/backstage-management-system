@@ -42,6 +42,5 @@ docker-compose up -d
 echo
 echo -e "${GREEN}============================================${RESET}"
 echo -e "${GREEN}部署完成！${RESET}"
-echo -e "${GREEN}前端访问地址：http://localhost${RESET}"
-echo -e "${GREEN}如果配置了 HTTPS，请访问：https://yourdomain.com${RESET}"
+echo -e "${GREEN}前端访问地址：https://192.168.10.143${RESET}  (本地部分访问ip为你自己的，若是云部署则为你购买证书的域名)"
 echo -e "${GREEN}============================================${RESET}"
