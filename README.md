@@ -77,6 +77,24 @@ devServer: {
 }
 ```
 
+#### 修改环境配置
+
+修改.env.development
+
+```
+# ===========================
+# 前端开发环境配置
+# ===========================
+
+# 后端 API 地址（开发环境）
+# 你本地 Django 运行在哪就写哪
+VUE_APP_BASE_URL=https://192.168.10.143:8000/
+
+# 是否开启调试日志
+VUE_APP_DEBUG=true
+
+```
+
 #### 启动方式
 
 ```
@@ -95,21 +113,98 @@ https://192.168.10.143:8080/
 
 项目提供了一个企业级 HTTPS 启动脚本 `manage_https.py`，用于在本地或局域网以 HTTPS 方式运行 Django 服务。
 
-#### 为什么后端也要 HTTPS？
+manage_https.py 配置自签证书，使开发环境以 HTTPS 方式运行：
 
-因为：
+以下代码配置证书路径为后端项目路径下certificate里
+
+```
+BASE_DIR = Path(__file__).resolve().parent
+CERT_DIR = BASE_DIR / "certificate"
+CERT_FILE = CERT_DIR / "localhost+3.pem"
+KEY_FILE = CERT_DIR / "localhost+3-key.pem"
+```
+
+#### ![屏幕截图 2026-10-29 104459](.\picture\屏幕截图 2026-10-29 104459.png)
+
+#### 为什么后端也要 HTTPS？因为：
 
 - 前端通过 HTTPS 访问
 - 后端如果是 HTTP，会触发 **混合内容（Mixed Content）** 错误
 - Cookie 的 Secure 属性要求 **前后端都必须是 HTTPS**
 
-#### 启动方式
+#### 修改环境配置
+
+修改.env
+
+```
+# 是否开启 Django DEBUG 模式
+# True：开发环境（显示错误堆栈）
+# False：生产环境（隐藏错误信息）
+DEBUG=True
+
+# ===========================
+# ALLOWED_HOSTS 配置
+# ===========================
+# 允许访问 Django 的域名/IP 列表
+# 写法 1：允许所有（开发环境常用）
+# ALLOWED_HOSTS=*
+#
+# 写法 2：指定多个域名/IP，用逗号分隔
+# ALLOWED_HOSTS=127.0.0.1,localhost,192.168.10.143
+#
+# 下面是示例（你可以按需修改）
+ALLOWED_HOSTS=*
+
+# ===========================
+# CORS 跨域配置
+# ===========================
+
+# 写法 1：允许所有跨域（开发环境常用）
+# CORS_ORIGINS=*
+
+# 写法 2：指定允许跨域的域名（生产环境推荐）
+# CORS_ORIGINS=http://localhost:8080,http://192.168.10.143:8080
+
+# 你当前开发环境建议使用：
+CORS_ORIGINS=*
+
+# ===========================
+# MySQL 数据库配置
+# ===========================
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=111111
+MYSQL_DB=backstage
+
+# ===========================
+# Redis 配置
+# ===========================
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_DB=0
+
+# ===========================
+# JWT 密钥（务必保密）
+# ===========================
+JWT_SECRET_KEY=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+```
+
+#### 开发环境启动方式
+
+注意：
+
+1. **启动前先安装好mysql，redis**
+2. **修改后端项目下的.env文件配置信息**
+
+启动命令
 
 ```
 python manage_https.py --host 127.0.0.1 --port 8000
 ```
 
-局域网访问示例：
+##### 开发环境局域网启动访问示例：
 
 ```
 python manage_https.py --host 192.168.10.143 --port 8000
@@ -121,14 +216,7 @@ python manage_https.py --host 192.168.10.143 --port 8000
 https://192.168.10.143:8000
 ```
 
-脚本功能包括：
-
-- 检查证书是否存在
-- 可选自动安装依赖（Werkzeug、pyOpenSSL）
-- 使用 `runserver_plus` 启动 HTTPS
-- 支持自定义 host / port
-
-### 5.证书
+### 5.开发环境证书生成参考
 
 证书生成可参考：
 
