@@ -13,8 +13,11 @@ docker-compose down --rmi local -v
 echo [2/4] 清理悬空镜像...
 docker image prune -f
 
-echo [3/4] 开始构建镜像（无缓存）...
-docker-compose build --no-cache
+REM echo [3/4] 开始构建镜像（无缓存）...
+REM docker-compose build --no-cache
+
+echo [3/4] 开始构建镜像...
+docker-compose build
 
 if %errorlevel% neq 0 (
     echo 构建失败，请检查错误信息！
@@ -28,7 +31,7 @@ docker-compose up -d
 echo.
 echo ============================================
 echo 部署完成！
-echo 前端访问地址：http://localhost
+echo 前端访问地址：https://192.168.10.143/
 echo 如果配置了 HTTPS，请访问：https://yourdomain.com
 echo ============================================
 pause

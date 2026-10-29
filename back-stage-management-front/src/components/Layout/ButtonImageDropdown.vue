@@ -240,7 +240,7 @@ export default {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   font-family: "Segoe UI", "PingFang SC", sans-serif;
-  z-index: 4;
+  z-index: 9;
   overflow: hidden;
 }
 

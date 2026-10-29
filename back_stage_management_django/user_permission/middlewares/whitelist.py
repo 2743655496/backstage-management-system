@@ -3,6 +3,7 @@ PUBLIC_WHITELIST = {
     "/api/system/auth/login": ["POST"],
     "/api/system/auth/slider_verify": ["POST"],
     "/api/system/auth/refresh": ["POST"],
+    "/api/system/auth/logout": ["POST"],
 }
 
 # ② 登录即可访问（无需权限）

@@ -221,3 +221,63 @@ https://192.168.10.143:8000
 证书生成可参考：
 
 https://blog.csdn.net/dreams_dream/article/details/151352681?spm=1001.2014.3001.5501
+
+## 生产环境
+
+### docker本地部署示例
+
+#### 修改环境变量
+
+后端修改.env.prod
+
+前端修改.env.production
+
+#### 进入docker_deploy目录，命令行执行
+
+##### windows
+
+```
+deploy.bat
+```
+
+##### linux
+
+```
+deploy.sh
+```
+
+# 项目展示
+
+## 登录界面
+
+![登录界面](.\picture\登录界面.png)
+
+![登录界面2](.\picture\登录界面2.png)
+
+![登录界面3](.\picture\登录界面3.png)
+
+## 功能页
+
+![分析页](.\picture\分析页.png)
+
+![工作台](.\picture\工作台.png)
+
+![角色管理](.\picture\角色管理.png)
+
+
+
+![部门管理](.\picture\部门管理.png)
+
+![用户管理](.\picture\用户管理.png)
+
+![权限管理](.\picture\权限管理.png)
+
+![菜单管理](.\picture\菜单管理.png)
+
+## 锁屏
+
+![锁屏1](.\picture\锁屏1.png)
+
+![锁屏2](.\picture\锁屏2.png)
+
+![锁屏3](.\picture\锁屏3.png)
