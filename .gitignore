@@ -13,7 +13,7 @@ back_stage_management_django/.idea/
 back_stage_management_django/.venv/
 back_stage_management_django/**/*.pyc
 back_stage_management_django/**/__pycache__/
-back_stage_management_django/**/migrations/
+#back_stage_management_django/**/migrations/
 back_stage_management_django/*.sqlite3
 back_stage_management_django/db.sqlite3
 back_stage_management_django/.env
