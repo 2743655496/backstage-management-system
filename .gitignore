@@ -31,6 +31,6 @@ Thumbs.db
 .DS_Store
 
 # ✅ 可选：忽略证书目录（如包含敏感信息）
-back_stage_management_django/certificate/
-back-stage-management-front/certificate/
+#back_stage_management_django/certificate/
+#back-stage-management-front/certificate/
 
