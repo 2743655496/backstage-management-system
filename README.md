@@ -250,7 +250,7 @@ deploy.sh
 
 ## 登录界面
 
-![登录界面](.\picture\登录界面.png)
+![登录界面](./picture/登录界面.png)
 
 ![登录界面2](.\picture\登录界面2.png)
 
