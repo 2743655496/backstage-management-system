@@ -124,7 +124,7 @@ CERT_FILE = CERT_DIR / "localhost+3.pem"
 KEY_FILE = CERT_DIR / "localhost+3-key.pem"
 ```
 
-#### ![屏幕截图 2026-10-29 104459](.\picture\屏幕截图 2026-10-29 104459.png)
+#### ![屏幕截图 2026-10-29 104459](./picture/屏幕截图 2026-10-29 104459.png)
 
 #### 为什么后端也要 HTTPS？因为：
 
@@ -252,32 +252,32 @@ deploy.sh
 
 ![登录界面](./picture/登录界面.png)
 
-![登录界面2](.\picture\登录界面2.png)
+![登录界面2](./picture/登录界面2.png)
 
-![登录界面3](.\picture\登录界面3.png)
+![登录界面3](./picture/登录界面3.png)
 
 ## 功能页
 
-![分析页](.\picture\分析页.png)
+![分析页](./picture/分析页.png)
 
-![工作台](.\picture\工作台.png)
+![工作台](./picture/工作台.png)
 
-![角色管理](.\picture\角色管理.png)
+![角色管理](./picture/角色管理.png)
 
 
 
-![部门管理](.\picture\部门管理.png)
+![部门管理](./picture/部门管理.png)
 
-![用户管理](.\picture\用户管理.png)
+![用户管理](./picture/用户管理.png)
 
-![权限管理](.\picture\权限管理.png)
+![权限管理](./picture/权限管理.png)
 
-![菜单管理](.\picture\菜单管理.png)
+![菜单管理](./picture/菜单管理.png)
 
 ## 锁屏
 
-![锁屏1](.\picture\锁屏1.png)
+![锁屏1](./picture/锁屏1.png)
 
-![锁屏2](.\picture\锁屏2.png)
+![锁屏2](./picture/锁屏2.png)
 
-![锁屏3](.\picture\锁屏3.png)
+![锁屏3](./picture/锁屏3.png)
